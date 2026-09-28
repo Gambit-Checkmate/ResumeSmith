@@ -103,6 +103,8 @@ All API routes have a 60-second execution limit. O*NET calls time out after 10 s
 
 The application targets Vercel Hobby and uses `web/` as the project root. Configure `OPENAI_API_KEY` and `ONET_API_KEY` in the Vercel project when their features are needed. The app is designed for stateless serverless execution and does not require a database or writable persistent filesystem.
 
+The footer shows a build version. Production deployments are labeled `YYYY.MM.DD.PR`, combining the UTC build date with the pull request number GitHub adds to the merge commit subject (`title (#66)` or `Merge pull request #66 ...`); a production build without a PR number falls back to `YYYY.MM.DD+<short SHA>`. Preview deployments and local development show `Dev`. The label is computed in `vite.config.ts` from Vercel's `VERCEL_ENV`, `VERCEL_GIT_COMMIT_MESSAGE`, and `VERCEL_GIT_COMMIT_SHA` system environment variables, so keep **Automatically expose System Environment Variables** enabled in the Vercel project settings (the default). No manual configuration is needed.
+
 ## Project layout
 
 ```text

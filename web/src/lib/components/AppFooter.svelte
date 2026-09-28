@@ -62,6 +62,8 @@
 				<a href="https://monster0506.dev/" target="_blank" rel="noopener noreferrer" class="hover:text-gray-700"
 					>TJ Raklovits</a
 				>
+				&middot;
+				<span title="Build version">{__APP_VERSION__}</span>
 			</p>
 			<p>
 				Missing something?
