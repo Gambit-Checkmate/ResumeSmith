@@ -6,6 +6,7 @@
 		compiledPageCount,
 		estimatedOverOnePage,
 		onDownload,
+		onDownloadTypst,
 		onUpload,
 		onTemplate,
 		onTailor,
@@ -17,6 +18,7 @@
 		compiledPageCount: number | null;
 		estimatedOverOnePage: boolean;
 		onDownload: () => void;
+		onDownloadTypst: () => void;
 		onUpload: () => void;
 		onTemplate: () => void;
 		onTailor: () => void;
@@ -38,6 +40,12 @@
 				<button class="secondary" onclick={() => (showCode = !showCode)}>
 					{showCode ? 'Show preview' : 'Show code'}
 				</button>
+				<button
+					class="secondary"
+					onclick={onDownloadTypst}
+					title="Download the Typst source, or the empty template if the resume has no content yet"
+					>Download Typst</button
+				>
 				<button class="primary" onclick={onDownload} disabled={isCompiling}>
 					{isCompiling ? 'Generating...' : 'Download PDF'}
 				</button>

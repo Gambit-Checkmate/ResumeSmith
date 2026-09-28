@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { generateTypstCode, RESUME_CONTENT_MARKER } from './typst-generator';
+import {
+	generateTypstCode,
+	generateTypstTemplate,
+	hasResumeContent,
+	typstDownload,
+	RESUME_CONTENT_MARKER,
+} from './typst-generator';
 import { defaultResumeData, defaultFontSettings } from './types';
 import type { ResumeData, WorkExperience } from './types';
 
@@ -243,5 +249,72 @@ describe('generateTypstCode sanitization', () => {
 			}),
 		);
 		expect(content).toContain('project-url: "https://example.com/x"');
+	});
+});
+
+describe('typst download payload', () => {
+	const customTemplate = `#let custom-marker = 1\n${RESUME_CONTENT_MARKER}\n`;
+
+	function filledData(): ResumeData {
+		const data = structuredClone(defaultResumeData);
+		data.personalInfo.name = 'Jordan Example';
+		data.personalInfo.email = 'jordan@example.com';
+		data.profile.summary = 'Synthetic summary text.';
+		data.skills = [{ id: 's1', category: 'Languages', skills: 'TypeScript' }];
+		data.colors.accentColor = '#123456';
+		return data;
+	}
+
+	it('treats default data and unrendered fields as having no content', () => {
+		const data = structuredClone(defaultResumeData);
+		expect(hasResumeContent(data)).toBe(false);
+		data.personalInfo.location = 'Nowhere';
+		data.workExperience = [
+			{
+				id: 'w1',
+				title: '',
+				company: '',
+				location: '',
+				startDate: '',
+				endDate: '',
+				isPresent: false,
+				bullets: ['Orphan bullet'],
+			},
+		];
+		expect(hasResumeContent(data)).toBe(false);
+	});
+
+	it('detects any rendered content', () => {
+		const data = structuredClone(defaultResumeData);
+		data.personalInfo.email = 'someone@example.com';
+		expect(hasResumeContent(data)).toBe(true);
+	});
+
+	it('downloads the full resume source when content exists', () => {
+		const data = filledData();
+		expect(typstDownload(data, customTemplate)).toEqual({
+			source: generateTypstCode(data, customTemplate),
+			filename: 'Jordan Example.typ',
+		});
+	});
+
+	it('falls back to the active template when there is no content', () => {
+		const data = structuredClone(defaultResumeData);
+		data.colors.accentColor = '#123456';
+		const { source, filename } = typstDownload(data, customTemplate);
+		expect(filename).toBe('resume-template.typ');
+		expect(source).toContain('#let custom-marker = 1');
+		expect(source).toContain(RESUME_CONTENT_MARKER);
+	});
+
+	it('keeps styling but strips every piece of resume content from the template', () => {
+		const data = filledData();
+		const template = generateTypstTemplate(data);
+		expect(template).toContain('acct-color = rgb("123456")');
+		expect(template).toContain(RESUME_CONTENT_MARKER);
+		for (const value of ['Jordan Example', 'jordan@example.com', 'Synthetic summary text.', 'TypeScript']) {
+			expect(template).not.toContain(value);
+		}
+		expect(template).toBe(generateTypstTemplate(structuredClone({ ...defaultResumeData, colors: data.colors })));
 	});
 });

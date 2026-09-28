@@ -2,7 +2,8 @@
 	import { onMount } from 'svelte';
 	import { resumeStore } from '$lib/store';
 	import { onetStore } from '$lib/onet-store';
-	import { generateTypstCode } from '$lib/typst-generator';
+	import { generateTypstCode, typstDownload } from '$lib/typst-generator';
+	import { downloadBlob } from '$lib/browser-download';
 	import {
 		initCompiler,
 		compileToPdf,
@@ -107,6 +108,11 @@
 		}
 	}
 
+	function downloadTypstFile() {
+		const { source, filename } = typstDownload(data, customTemplate?.source);
+		downloadBlob(new Blob([source], { type: 'text/plain;charset=utf-8' }), filename);
+	}
+
 	const tabs = [
 		{ id: 'personal', label: 'Personal' },
 		{ id: 'profile', label: 'Profile' },
@@ -138,6 +144,7 @@
 		{compiledPageCount}
 		{estimatedOverOnePage}
 		onDownload={downloadPdfFile}
+		onDownloadTypst={downloadTypstFile}
 		onUpload={() => (uploadOpen = true)}
 		onTemplate={() => (templateOpen = true)}
 		onTailor={() => (tailorOpen = true)}
