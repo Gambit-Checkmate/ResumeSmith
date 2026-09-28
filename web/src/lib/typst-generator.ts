@@ -16,6 +16,14 @@ import { customSectionKey } from './types';
 import { defaultFontSettings, defaultResumeData } from './types';
 import { typstString, typstMarkup, typstNumber, typstColor, typstUrl } from './typst-escape';
 import { FONT_SIZE_BOUNDS, fontFamily } from './fonts';
+import {
+	authorMarkup,
+	citationMarkup,
+	isPublicationStatus,
+	publicationLinks,
+	publicationStatusLabels,
+	venueMarkup,
+} from './publication';
 
 export const RESUME_CONTENT_MARKER = '// ========== RESUME CONTENT ==========';
 
@@ -165,20 +173,33 @@ ${achievementItems}`;
 }
 
 // Reuses achievement-heading so existing custom templates keep compiling without a new helper.
-function generatePublications(publications: Publication[]): string {
+function generateResumePublications(publications: Publication[], ownerName: string): string {
 	const items = publications
 		.filter((p) => p.title.trim())
 		.map((p) => {
 			const details = [
-				p.authors.trim() ? typstMarkup(p.authors) : '',
-				p.venue.trim() ? `_${typstMarkup(p.venue)}_` : '',
+				p.authors.trim() ? authorMarkup(p.authors, ownerName) : '',
+				venueMarkup(p),
+				p.status !== 'published' && isPublicationStatus(p.status) ? publicationStatusLabels[p.status] : '',
 			].filter(Boolean);
-			const url = typstUrl(p.url);
-			if (url) details.push(`#link("${typstString(url)}")`);
+			details.push(...publicationLinks(p));
 			const body = details.length ? `\n${details.join('. ')}` : '';
 			return `#achievement-heading("${typstString(p.title)}", "${typstString(formatDisplayDate(p.date))}")[${body}]`;
 		})
 		.join('\n\n');
+
+	if (!items) return '';
+
+	return `= Publications
+${items}`;
+}
+
+// A CV lists full references; plain numbered-list markup needs no template helper.
+function generateCvPublications(publications: Publication[], ownerName: string): string {
+	const items = publications
+		.filter((p) => p.title.trim())
+		.map((p) => `+ ${citationMarkup(p, ownerName)}`)
+		.join('\n');
 
 	if (!items) return '';
 
@@ -371,6 +392,7 @@ export function generateTypstCode(data: ResumeData, customTemplate?: string | nu
 		skills,
 		achievements,
 		publications,
+		publicationAuthorName,
 		colors,
 		fonts,
 		fontFamilies,
@@ -394,7 +416,10 @@ export function generateTypstCode(data: ResumeData, customTemplate?: string | nu
 			filledLeadership.length > 0 ? `= Leadership\n${filledLeadership.map(generateLeadership).join('\n\n')}` : '',
 		skills: generateSkills(skills),
 		achievements: generateAchievements(achievements),
-		publications: generatePublications(publications),
+		publications:
+			documentType === 'cv'
+				? generateCvPublications(publications, publicationAuthorName)
+				: generateResumePublications(publications, publicationAuthorName),
 	};
 	for (const section of customSections) sections[customSectionKey(section.id)] = generateCustomSection(section);
 

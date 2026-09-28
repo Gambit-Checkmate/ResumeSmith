@@ -1,5 +1,6 @@
 import { writable } from 'svelte/store';
-import type { CustomSection, CustomSectionEntry, DocumentType, ResumeData, SectionKey } from './types';
+import type { CustomSection, CustomSectionEntry, DocumentType, Publication, ResumeData, SectionKey } from './types';
+import { isPublicationStatus } from './publication';
 import { generateId } from './resume-utils';
 import { customSectionKey, defaultResumeData, defaultSectionOrder, documentTypes } from './types';
 
@@ -30,6 +31,24 @@ function normalizeCustomSections(value: unknown): CustomSection[] {
 				}),
 			),
 		}));
+}
+
+// Publications saved before the citation fields existed get empty ones.
+function normalizePublications(value: unknown, fallback: Publication[]): Publication[] {
+	if (!Array.isArray(value)) return fallback;
+	return objects(value).map((publication) => ({
+		id: text(publication.id) || generateId(),
+		title: text(publication.title),
+		authors: text(publication.authors),
+		venue: text(publication.venue),
+		date: text(publication.date),
+		url: text(publication.url),
+		volume: text(publication.volume),
+		issue: text(publication.issue),
+		pages: text(publication.pages),
+		doi: text(publication.doi),
+		status: isPublicationStatus(publication.status) ? publication.status : 'published',
+	}));
 }
 
 // Old saved data can predate fields added to ResumeData since it was written
@@ -69,7 +88,8 @@ export function mergeWithDefaults(saved: Partial<ResumeData>): ResumeData {
 		leadership: arrays('leadership'),
 		skills: arrays('skills'),
 		achievements: arrays('achievements'),
-		publications: arrays('publications'),
+		publications: normalizePublications(saved.publications, defaults.publications),
+		publicationAuthorName: text(saved.publicationAuthorName),
 		customSections,
 		sectionOrder,
 	};

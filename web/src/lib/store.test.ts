@@ -73,6 +73,31 @@ describe('mergeWithDefaults', () => {
 		expect(merged.customSections[0].entries[0].id).not.toBe('');
 	});
 
+	it('adds citation fields to publications saved before they existed', () => {
+		const merged = mergeWithDefaults({
+			publications: [
+				{ id: 'p', title: 'Paper', authors: 'A', venue: 'V', date: '2020-01', url: '' },
+				{ id: 'q', title: 'Other', status: 'retracted', volume: 4 },
+			] as never,
+		});
+		expect(merged.publications[0]).toEqual({
+			id: 'p',
+			title: 'Paper',
+			authors: 'A',
+			venue: 'V',
+			date: '2020-01',
+			url: '',
+			volume: '',
+			issue: '',
+			pages: '',
+			doi: '',
+			status: 'published',
+		});
+		expect(merged.publications[1].status).toBe('published');
+		expect(merged.publications[1].volume).toBe('');
+		expect(merged.publicationAuthorName).toBe('');
+	});
+
 	it('preserves fields present in the saved data', () => {
 		const saved = { ...defaultResumeData, personalInfo: { ...defaultResumeData.personalInfo, name: 'Ada' } };
 		const merged = mergeWithDefaults(saved);

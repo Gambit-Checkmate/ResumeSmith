@@ -62,6 +62,8 @@ export interface Achievement {
 	description: string;
 }
 
+export type PublicationStatus = 'published' | 'in press' | 'under review';
+
 export interface Publication {
 	id: string;
 	title: string;
@@ -69,7 +71,15 @@ export interface Publication {
 	venue: string;
 	date: string;
 	url: string;
+	volume: string;
+	issue: string;
+	pages: string;
+	doi: string;
+	status: PublicationStatus;
 }
+
+// Resume extraction predates the typed citation fields and still returns only these.
+export type ResumePublication = Pick<Publication, 'title' | 'authors' | 'venue' | 'date' | 'url'>;
 
 // A user-named section (grants, teaching, service, ...) built from freeform entries.
 export interface CustomSectionEntry {
@@ -206,6 +216,8 @@ export interface ResumeData {
 	skills: SkillCategory[];
 	achievements: Achievement[];
 	publications: Publication[];
+	// The owner's name as it appears in author lists, bolded in citations.
+	publicationAuthorName: string;
 	customSections: CustomSection[];
 	colors: ColorSettings;
 	fonts: FontSettings;
@@ -242,6 +254,7 @@ export const defaultResumeData: ResumeData = {
 	skills: [],
 	achievements: [],
 	publications: [],
+	publicationAuthorName: '',
 	customSections: [],
 	colors: {
 		headColor: '#22227f',
@@ -264,6 +277,6 @@ export interface ExtractedResume {
 	leadership: Omit<Leadership, 'id'>[];
 	skills: Omit<SkillCategory, 'id'>[];
 	achievements: Omit<Achievement, 'id'>[];
-	publications: Omit<Publication, 'id'>[];
+	publications: ResumePublication[];
 	clearance: Omit<Clearance, 'id'>[];
 }

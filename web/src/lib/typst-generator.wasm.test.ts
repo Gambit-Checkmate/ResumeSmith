@@ -67,3 +67,24 @@ it('compiles custom sections carrying markup and quote payloads', TIMEOUT, async
 	data.sectionOrder = [...data.sectionOrder, 'custom:c'];
 	await expect($typst.svg({ mainContent: generateTypstCode(data) })).resolves.toBeTruthy();
 });
+
+it('compiles CV references with every citation field and hostile values', TIMEOUT, async () => {
+	const data = { ...structuredClone(defaultResumeData), documentType: 'cv' as const };
+	data.publicationAuthorName = 'Doe, J.';
+	data.publications = [
+		{
+			id: 'p',
+			title: 'Title] #panic("x")',
+			authors: 'Doe, J., *Roe*, R.',
+			venue: '_Venue_',
+			date: '2021-03',
+			url: 'example.com',
+			volume: '#1',
+			issue: '$2',
+			pages: '3-4]',
+			doi: '10.1234/a"b#[c]',
+			status: 'in press',
+		},
+	];
+	await expect($typst.svg({ mainContent: generateTypstCode(data) })).resolves.toBeTruthy();
+});

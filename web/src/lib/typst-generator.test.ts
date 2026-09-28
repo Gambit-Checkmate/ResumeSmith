@@ -7,7 +7,7 @@ import {
 	RESUME_CONTENT_MARKER,
 } from './typst-generator';
 import { defaultResumeData, defaultFontSettings } from './types';
-import type { ResumeData, WorkExperience } from './types';
+import type { Publication, ResumeData, WorkExperience } from './types';
 
 function baseData(clearance: ResumeData['clearance']): ResumeData {
 	return { ...structuredClone(defaultResumeData), clearance };
@@ -55,6 +55,11 @@ describe('generateTypstCode publications section', () => {
 		venue: 'Journal of Tests',
 		date: '2022-05',
 		url: '',
+		volume: '',
+		issue: '',
+		pages: '',
+		doi: '',
+		status: 'published' as const,
 	};
 
 	it('omits the Publications heading when no entry has a title', () => {
@@ -79,6 +84,75 @@ describe('generateTypstCode publications section', () => {
 	it('escapes markup in publication fields', () => {
 		const content = contentOf(withOverrides({ publications: [{ ...paper, venue: 'Conf] #eval("1")' }] }));
 		expect(content).toContain(String.raw`_Conf\] \#eval(\"1\")_`);
+	});
+});
+
+describe('typed publication fields', () => {
+	const paper: Publication = {
+		id: 'p1',
+		title: 'Fast Parsing',
+		authors: 'Doe, J., Test, A.',
+		venue: 'Journal of Tests',
+		date: '2022-05',
+		url: '',
+		volume: '12',
+		issue: '3',
+		pages: '45-67',
+		doi: 'https://doi.org/10.1234/abc',
+		status: 'published',
+	};
+
+	it('adds citation details and the owner name to the resume layout', () => {
+		const content = contentOf(withOverrides({ publications: [paper], publicationAuthorName: 'Test, A.' }));
+		expect(content).toContain(
+			'#achievement-heading("Fast Parsing", "May 2022")[\nDoe, J., #strong[Test, A.]. _Journal of Tests_, 12(3), 45\\-67. #link("https://doi.org/10.1234/abc")[doi:10.1234\\/abc]]',
+		);
+	});
+
+	it('shows a non-published status in the resume layout', () => {
+		const content = contentOf(withOverrides({ publications: [{ ...paper, status: 'under review' }] }));
+		expect(content).toContain('. Under review. ');
+	});
+
+	it('lists full references in a CV', () => {
+		const content = contentOf(
+			withOverrides({
+				documentType: 'cv',
+				publications: [paper, { ...paper, id: 'p2', title: 'Second?', status: 'in press' }],
+				publicationAuthorName: 'Doe, J.',
+			}),
+		);
+		expect(content).toContain(
+			'= Publications\n+ #strong[Doe, J.], Test, A. (2022). Fast Parsing. _Journal of Tests_, 12(3), 45\\-67. #link("https://doi.org/10.1234/abc")[doi:10.1234\\/abc]\n+ #strong[Doe, J.], Test, A. (in press). Second?',
+		);
+		expect(content).not.toContain('achievement-heading("Fast Parsing"');
+	});
+
+	it('drops an invalid DOI and escapes every field in a CV reference', () => {
+		const content = contentOf(
+			withOverrides({
+				documentType: 'cv',
+				publicationAuthorName: '*me*',
+				publications: [
+					{
+						...paper,
+						authors: '*me*, [x]',
+						title: 'T] #eval("1")',
+						venue: '_V_',
+						volume: '#1',
+						issue: '$2',
+						pages: '3]',
+						doi: 'javascript:alert(1)',
+						url: 'javascript:alert(1)',
+					},
+				],
+			}),
+		);
+		expect(content).toContain(
+			'+ #strong[\\*me\\*], \\[x\\] (2022). T\\] \\#eval(\\"1\\"). _\\_V\\__, \\#1(\\$2), 3\\].',
+		);
+		expect(content).not.toContain('javascript');
+		expect(content).not.toContain('#link(');
 	});
 });
 

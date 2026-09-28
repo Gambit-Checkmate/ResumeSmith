@@ -95,8 +95,14 @@ const RESUME_CONTRACT_FIXTURE: ResumeData = {
 			venue: 'Example Journal',
 			date: '2024-01',
 			url: 'example.com/paper',
+			volume: '12',
+			issue: '3',
+			pages: '45-67',
+			doi: '10.1234/example',
+			status: 'published',
 		},
 	],
+	publicationAuthorName: 'T. Test',
 	customSections: [
 		{
 			id: 'custom',
