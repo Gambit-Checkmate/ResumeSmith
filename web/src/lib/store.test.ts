@@ -35,6 +35,44 @@ describe('mergeWithDefaults', () => {
 		expect(mergeWithDefaults({ documentType: 'letter' as never }).documentType).toBe('resume');
 	});
 
+	it('adds an empty custom section list to data saved before custom sections existed', () => {
+		const { customSections, ...legacy } = defaultResumeData;
+		const merged = mergeWithDefaults(legacy);
+		expect(merged.customSections).toEqual([]);
+		expect(merged.sectionOrder).toEqual(defaultResumeData.sectionOrder);
+	});
+
+	it('keeps custom sections in their saved order and appends any missing from the order', () => {
+		const merged = mergeWithDefaults({
+			customSections: [
+				{ id: 'a', heading: 'Grants', entries: [] },
+				{ id: 'b', heading: 'Teaching', entries: [] },
+			],
+			sectionOrder: ['custom:b', 'profile', 'custom:gone'] as never,
+		});
+		expect(merged.sectionOrder[0]).toBe('custom:b');
+		expect(merged.sectionOrder[1]).toBe('profile');
+		expect(merged.sectionOrder).not.toContain('custom:gone');
+		expect(merged.sectionOrder.at(-1)).toBe('custom:a');
+	});
+
+	it('repairs or drops malformed custom sections', () => {
+		const merged = mergeWithDefaults({
+			customSections: [
+				{ id: 'a', heading: 7, entries: [{ title: 'Entry', bullets: ['ok', 3], date: null }, 'junk'] },
+				{ id: 'a', heading: 'Duplicate', entries: [] },
+				{ heading: 'No id', entries: [] },
+				null,
+			] as never,
+		});
+		expect(merged.customSections).toHaveLength(1);
+		expect(merged.customSections[0].heading).toBe('');
+		expect(merged.customSections[0].entries).toEqual([
+			{ id: expect.any(String), title: 'Entry', date: '', bullets: ['ok'] },
+		]);
+		expect(merged.customSections[0].entries[0].id).not.toBe('');
+	});
+
 	it('preserves fields present in the saved data', () => {
 		const saved = { ...defaultResumeData, personalInfo: { ...defaultResumeData.personalInfo, name: 'Ada' } };
 		const merged = mergeWithDefaults(saved);

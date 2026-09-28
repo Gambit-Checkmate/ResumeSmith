@@ -8,9 +8,11 @@ import type {
 	Publication,
 	SkillCategory,
 	Clearance,
-	SectionId,
+	SectionKey,
 	DocumentType,
+	CustomSection,
 } from './types';
+import { customSectionKey } from './types';
 import { defaultFontSettings, defaultResumeData } from './types';
 import { typstString, typstMarkup, typstNumber, typstColor, typstUrl } from './typst-escape';
 import { FONT_SIZE_BOUNDS, fontFamily } from './fonts';
@@ -184,6 +186,26 @@ function generatePublications(publications: Publication[]): string {
 ${items}`;
 }
 
+// Built only from existing helpers, so custom templates keep compiling without a new one.
+function generateCustomSection(section: CustomSection): string {
+	if (!section.heading.trim()) return '';
+	const items = section.entries
+		.filter((entry) => entry.title.trim())
+		.map((entry) => {
+			const bullets = entry.bullets
+				.filter((b) => b.trim())
+				.map((b) => `\n  - ${typstMarkup(b)}`)
+				.join('');
+			return `#achievement-heading("${typstString(entry.title)}", "${typstString(entry.date.trim())}")[${bullets}]`;
+		})
+		.join('\n\n');
+
+	if (!items) return '';
+
+	return `= ${typstMarkup(section.heading.trim())}
+${items}`;
+}
+
 function generateClearance(clearance: Clearance[]): string {
 	if (clearance.length === 0) return '';
 
@@ -353,6 +375,7 @@ export function generateTypstCode(data: ResumeData, customTemplate?: string | nu
 		fonts,
 		fontFamilies,
 		sectionOrder,
+		customSections,
 	} = data;
 
 	const filledEducation = education.filter((e) => e.institution.trim() || e.degree.trim() || e.major.trim());
@@ -360,7 +383,7 @@ export function generateTypstCode(data: ResumeData, customTemplate?: string | nu
 	const filledExperience = workExperience.filter((w) => w.title.trim() || w.company.trim());
 	const filledLeadership = leadership.filter((l) => l.title.trim() || l.organization.trim());
 
-	const sections: Record<SectionId, string> = {
+	const sections: Record<SectionKey, string> = {
 		profile: generateProfile(profile.summary),
 		clearance: generateClearance(clearance),
 		education: filledEducation.length > 0 ? `= Education\n${filledEducation.map(generateEducation).join('\n\n')}` : '',
@@ -373,10 +396,11 @@ export function generateTypstCode(data: ResumeData, customTemplate?: string | nu
 		achievements: generateAchievements(achievements),
 		publications: generatePublications(publications),
 	};
+	for (const section of customSections) sections[customSectionKey(section.id)] = generateCustomSection(section);
 
 	// Generate sections in the specified order
 	const orderedSections = sectionOrder
-		.map((id) => sections[id])
+		.map((id) => sections[id] ?? '')
 		.filter((section) => section.trim() !== '')
 		.join('\n\n');
 

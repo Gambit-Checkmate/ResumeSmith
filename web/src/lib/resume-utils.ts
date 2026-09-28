@@ -68,6 +68,7 @@ export function buildResumeFromExtraction(ex: ExtractedResume): ResumeData {
 		skills: withId(ex.skills ?? []),
 		achievements: withId(ex.achievements ?? []),
 		publications: withId(ex.publications ?? []),
+		customSections: [],
 		clearance: withId(ex.clearance ?? []),
 		colors: { ...defaultResumeData.colors },
 		fonts: { ...defaultFontSettings },

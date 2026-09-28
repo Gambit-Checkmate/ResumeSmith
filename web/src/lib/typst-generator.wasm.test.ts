@@ -5,6 +5,7 @@ import { it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { $typst } from '@myriaddreamin/typst.ts';
 import { generateTypstCode } from './typst-generator';
+import { withDocumentType } from './resume-utils';
 import { defaultResumeData, type ResumeData } from './types';
 
 const COMPILER_WASM = 'node_modules/@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm';
@@ -15,10 +16,9 @@ $typst.setCompilerInitOptions({ getModule: () => readFileSync(COMPILER_WASM).buf
 $typst.setRendererInitOptions({ getModule: () => readFileSync(RENDERER_WASM).buffer });
 
 function longDocument(documentType: ResumeData['documentType']): ResumeData {
-	const data = structuredClone(defaultResumeData);
-	data.documentType = documentType;
+	const data = withDocumentType(structuredClone(defaultResumeData), documentType);
 	data.personalInfo.name = 'Test Person';
-	data.workExperience = Array.from({ length: 30 }, (_, index) => ({
+	data.workExperience = Array.from({ length: 60 }, (_, index) => ({
 		id: `w${index}`,
 		title: `Position ${index}`,
 		company: 'Example University',
@@ -31,32 +31,39 @@ function longDocument(documentType: ResumeData['documentType']): ResumeData {
 	return data;
 }
 
-// Appends a compile-time assertion so the compiler itself reports the page count.
-const assertPages = (source: string, check: string) =>
-	$typst.svg({ mainContent: `${source}\n#context assert(${check}, message: "page count")` });
-
-it('lays a long CV out over several numbered pages', TIMEOUT, async () => {
-	await expect(
-		assertPages(generateTypstCode(longDocument('cv')), 'counter(page).final().first() > 2'),
-	).resolves.toBeTruthy();
-});
+// The compiler reports the page count through a compile-time assertion; each guess is one compile.
+async function pageCount(source: string): Promise<number> {
+	for (let count = 1; count <= 20; count++) {
+		try {
+			await $typst.svg({ mainContent: `${source}\n#context assert(counter(page).final().first() == ${count})` });
+			return count;
+		} catch {
+			// Not this many pages.
+		}
+	}
+	throw new Error('page count not found');
+}
 
 it('compiles an empty CV to a single page', TIMEOUT, async () => {
 	const data = { ...structuredClone(defaultResumeData), documentType: 'cv' as const };
-	await expect(assertPages(generateTypstCode(data), 'counter(page).final().first() == 1')).resolves.toBeTruthy();
+	expect(await pageCount(generateTypstCode(data))).toBe(1);
 });
 
-it('gives the CV fewer entries per page than the dense resume layout', TIMEOUT, async () => {
-	const pages = async (data: ResumeData) => {
-		for (let count = 1; count <= 20; count++) {
-			try {
-				await assertPages(generateTypstCode(data), `counter(page).final().first() == ${count}`);
-				return count;
-			} catch {
-				// Try the next count.
-			}
-		}
-		return 0;
-	};
-	expect(await pages(longDocument('cv'))).toBeGreaterThan(await pages(longDocument('resume')));
+it('lays a long CV out over more pages than the dense resume layout', TIMEOUT, async () => {
+	const cvPages = await pageCount(generateTypstCode(longDocument('cv')));
+	expect(cvPages).toBeGreaterThan(1);
+	expect(cvPages).toBeGreaterThan(await pageCount(generateTypstCode(longDocument('resume'))));
+});
+
+it('compiles custom sections carrying markup and quote payloads', TIMEOUT, async () => {
+	const data = structuredClone(defaultResumeData);
+	data.customSections = [
+		{
+			id: 'c',
+			heading: '= Talks] #eval("1")',
+			entries: [{ id: 'e', title: 'A "title" \\ #x', date: '2020") #panic("x', bullets: ['close] #panic("y")'] }],
+		},
+	];
+	data.sectionOrder = [...data.sectionOrder, 'custom:c'];
+	await expect($typst.svg({ mainContent: generateTypstCode(data) })).resolves.toBeTruthy();
 });

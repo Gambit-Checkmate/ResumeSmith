@@ -347,3 +347,62 @@ describe('academic CV template', () => {
 		expect(typstDownload(data).filename).toBe('cv.typ');
 	});
 });
+
+describe('custom sections', () => {
+	const grants = (overrides: Partial<ResumeData['customSections'][number]> = {}): ResumeData =>
+		withOverrides({
+			customSections: [
+				{
+					id: 'g',
+					heading: 'Grants',
+					entries: [
+						{ id: 'e1', title: 'Example Grant', date: '2021 - 2024', bullets: ['Principal investigator.', ' '] },
+					],
+					...overrides,
+				},
+			],
+			sectionOrder: ['custom:g', ...defaultResumeData.sectionOrder],
+		});
+
+	it('renders a heading and entries with dates and bullets through an existing helper', () => {
+		const content = contentOf(grants());
+		expect(content).toContain(
+			'= Grants\n#achievement-heading("Example Grant", "2021 - 2024")[\n  - Principal investigator.]',
+		);
+	});
+
+	it('follows the section order', () => {
+		const data = grants();
+		data.profile.summary = 'Synthetic summary.';
+		const content = contentOf(data);
+		expect(content.indexOf('= Grants')).toBeLessThan(content.indexOf('= Profile'));
+		data.sectionOrder = [...defaultResumeData.sectionOrder, 'custom:g'];
+		const reordered = contentOf(data);
+		expect(reordered.indexOf('= Grants')).toBeGreaterThan(reordered.indexOf('= Profile'));
+	});
+
+	it('omits a section without a heading or without titled entries', () => {
+		expect(contentOf(grants({ heading: '  ' }))).not.toContain('achievement-heading');
+		const untitled = grants({ entries: [{ id: 'e', title: ' ', date: '', bullets: ['orphan'] }] });
+		expect(contentOf(untitled)).not.toContain('Grants');
+		expect(hasResumeContent(untitled)).toBe(false);
+	});
+
+	it('escapes the heading, title, date, and bullets', () => {
+		const content = contentOf(
+			grants({
+				heading: '= Talks #eval("x")',
+				entries: [{ id: 'e', title: 'A "quoted" \\ title', date: '2020") #eval("x', bullets: ['close] #eval("1")'] }],
+			}),
+		);
+		expect(content).toContain('= \\= Talks \\#eval(\\"x\\")');
+		expect(content).toContain('#achievement-heading("A \\"quoted\\" \\\\ title", "2020\\") #eval(\\"x")');
+		expect(content).toContain('  - close\\] \\#eval(\\"1\\")]');
+	});
+
+	it('ignores an order entry whose custom section no longer exists', () => {
+		const data = withOverrides({ sectionOrder: ['custom:missing', ...defaultResumeData.sectionOrder] });
+		expect(() => generateTypstCode(data)).not.toThrow();
+		expect(hasResumeContent(data)).toBe(false);
+	});
+});

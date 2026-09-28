@@ -92,6 +92,14 @@ const TEMPLATE_CONTRACT_FIXTURE: ResumeData = {
 			url: 'example.com/paper',
 		},
 	],
+	customSections: [
+		{
+			id: 'custom',
+			heading: 'Example Section',
+			entries: [{ id: 'custom-entry', title: 'Example Entry', date: '2024', bullets: ['Representative detail.'] }],
+		},
+	],
+	sectionOrder: [...defaultResumeData.sectionOrder, 'custom:custom'],
 };
 
 /** Checks the inexpensive size, marker, and declaration requirements before compiling a template. */

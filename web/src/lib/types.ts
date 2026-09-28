@@ -71,6 +71,20 @@ export interface Publication {
 	url: string;
 }
 
+// A user-named section (grants, teaching, service, ...) built from freeform entries.
+export interface CustomSectionEntry {
+	id: string;
+	title: string;
+	date: string; // Freeform, e.g. "2019 - 2022" or "Fall 2023".
+	bullets: string[];
+}
+
+export interface CustomSection {
+	id: string;
+	heading: string;
+	entries: CustomSectionEntry[];
+}
+
 export type ClearanceLevel = 'Confidential' | 'Secret' | 'Top Secret' | 'Top Secret/SCI' | 'Public Trust';
 export type ClearanceStatus = 'Active' | 'Inactive' | 'Eligible';
 
@@ -158,6 +172,16 @@ export const defaultSectionOrder: SectionId[] = [
 	'publications',
 ];
 
+// Custom sections join the section order as `custom:<section id>`.
+export type CustomSectionKey = `custom:${string}`;
+export type SectionKey = SectionId | CustomSectionKey;
+
+export const CUSTOM_SECTION_PREFIX = 'custom:';
+
+export function customSectionKey(id: string): CustomSectionKey {
+	return `${CUSTOM_SECTION_PREFIX}${id}`;
+}
+
 export const sectionLabels: Record<SectionId, string> = {
 	profile: 'Profile',
 	clearance: 'Clearance',
@@ -182,10 +206,18 @@ export interface ResumeData {
 	skills: SkillCategory[];
 	achievements: Achievement[];
 	publications: Publication[];
+	customSections: CustomSection[];
 	colors: ColorSettings;
 	fonts: FontSettings;
 	fontFamilies: FontFamilies;
-	sectionOrder: SectionId[];
+	sectionOrder: SectionKey[];
+}
+
+/** The display name of a built-in or custom section. */
+export function sectionLabel(key: SectionKey, customSections: CustomSection[]): string {
+	if (!key.startsWith(CUSTOM_SECTION_PREFIX)) return sectionLabels[key as SectionId];
+	const section = customSections.find((candidate) => customSectionKey(candidate.id) === key);
+	return section?.heading.trim() || 'Untitled section';
 }
 
 export const defaultResumeData: ResumeData = {
@@ -210,6 +242,7 @@ export const defaultResumeData: ResumeData = {
 	skills: [],
 	achievements: [],
 	publications: [],
+	customSections: [],
 	colors: {
 		headColor: '#22227f',
 		textColor: '#1b1b1b',

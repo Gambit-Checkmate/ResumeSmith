@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { ResumeData } from '$lib/types';
-	import { sectionLabels, defaultSectionOrder } from '$lib/types';
+	import { sectionLabel, defaultSectionOrder, customSectionKey } from '$lib/types';
 
 	let { data }: { data: ResumeData } = $props();
 
@@ -13,7 +13,7 @@
 	}
 
 	function resetSectionOrder() {
-		data.sectionOrder = [...defaultSectionOrder];
+		data.sectionOrder = [...defaultSectionOrder, ...data.customSections.map((section) => customSectionKey(section.id))];
 	}
 </script>
 
@@ -48,7 +48,7 @@
 						>
 					</button>
 				</div>
-				<span class="font-medium flex-1">{sectionLabels[sectionId]}</span>
+				<span class="font-medium flex-1">{sectionLabel(sectionId, data.customSections)}</span>
 				<span class="text-sm text-gray-400">#{i + 1}</span>
 			</div>
 		{/each}
