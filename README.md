@@ -8,6 +8,7 @@ ResumeSmith is a privacy-conscious resume builder for forging polished, job-read
 
 - Edit resume content in the browser and preview the rendered document as you work, including sections for experience, projects, clearance, achievements, and publications.
 - Export a polished PDF using the bundled Typst WebAssembly compiler.
+- Download the Typst source of the resume. With no resume content yet, the download is the active template with only your styling choices and no personal data.
 - Pick separate heading and body fonts, and adjust font sizes with sliders or 0.5 pt steps.
 - Import TXT, DOCX, or PDF resumes through a review-and-consent gate before AI parsing.
 - Extract selectable PDF text locally and use Tesseract OCR only on pages that need it.
@@ -90,7 +91,7 @@ A custom `.typ` file must implement the same `resume`, section-heading, and `ski
 
 The app replaces content after the marker with the resume generated from the form, then compiles the complete document in the browser before activating it. Typst templates are limited to 1 MB.
 
-Use [the example custom template](docs/examples/modern-teal.typ) or download the built-in template from the upload dialog as a starting point. DOCX templates are limited to 4 MB so multipart uploads remain below Vercel's request limit; their supported layout and style are converted into Typst, while Word-only effects and images may be approximated or omitted.
+Use [the example custom template](docs/examples/modern-teal.typ) or download the built-in template from the upload dialog as a starting point. The starter file keeps your colors, fonts, and section order but contains no resume content. DOCX templates are limited to 4 MB so multipart uploads remain below Vercel's request limit; their supported layout and style are converted into Typst, while Word-only effects and images may be approximated or omitted.
 
 ## Deployment
 
