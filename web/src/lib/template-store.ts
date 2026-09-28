@@ -1,9 +1,14 @@
 import { writable } from 'svelte/store';
 import { compileToPdf } from './pdf-compiler';
 import { generateTypstCode, RESUME_CONTENT_MARKER } from './typst-generator';
-import { defaultResumeData, type ResumeData } from './types';
+import { defaultResumeData, type DocumentType, type ResumeData } from './types';
 
 export const TEMPLATE_STORAGE_KEY = 'customTypstTemplate';
+
+// Each document type keeps its own template; the resume keeps the original key so earlier sessions stay valid.
+export function templateStorageKey(documentType: DocumentType): string {
+	return documentType === 'resume' ? TEMPLATE_STORAGE_KEY : `${TEMPLATE_STORAGE_KEY}:${documentType}`;
+}
 export const MAX_TEMPLATE_SIZE = 1024 * 1024;
 
 export interface CustomTemplate {
@@ -20,7 +25,7 @@ const REQUIRED_HELPERS = [
 	{ name: 'skills', declaration: /^\s*#let\s+skills\b/m },
 ];
 
-const TEMPLATE_CONTRACT_FIXTURE: ResumeData = {
+const RESUME_CONTRACT_FIXTURE: ResumeData = {
 	...structuredClone(defaultResumeData),
 	personalInfo: {
 		name: 'Template Test',
@@ -102,6 +107,11 @@ const TEMPLATE_CONTRACT_FIXTURE: ResumeData = {
 	sectionOrder: [...defaultResumeData.sectionOrder, 'custom:custom'],
 };
 
+const TEMPLATE_CONTRACT_FIXTURES: Record<DocumentType, ResumeData> = {
+	resume: RESUME_CONTRACT_FIXTURE,
+	cv: { ...RESUME_CONTRACT_FIXTURE, documentType: 'cv' },
+};
+
 /** Checks the inexpensive size, marker, and declaration requirements before compiling a template. */
 export function validateTemplateSource(source: string): string | null {
 	if (!source.trim()) return 'The template is empty.';
@@ -118,29 +128,33 @@ export function validateTemplateSource(source: string): string | null {
 }
 
 /** Compiles a fully populated fixture so every required template helper is exercised before activation. */
-export async function validateTemplateCompatibility(source: string): Promise<string | null> {
+export async function validateTemplateCompatibility(
+	source: string,
+	documentType: DocumentType = 'resume',
+): Promise<string | null> {
 	const sourceError = validateTemplateSource(source);
 	if (sourceError) return sourceError;
 
 	try {
-		await compileToPdf(generateTypstCode(TEMPLATE_CONTRACT_FIXTURE, source));
+		await compileToPdf(generateTypstCode(TEMPLATE_CONTRACT_FIXTURES[documentType], source));
 		return null;
 	} catch (error) {
 		const detail = error instanceof Error ? error.message : String(error);
-		return `The template is incompatible with the resume format: ${detail}`;
+		return `The template is incompatible with the ${documentType === 'cv' ? 'CV' : 'resume'} format: ${detail}`;
 	}
 }
 
-function removeStoredTemplate(storage: Storage): void {
+function removeStoredTemplate(storage: Storage, key: string): void {
 	try {
-		storage.removeItem(TEMPLATE_STORAGE_KEY);
+		storage.removeItem(key);
 	} catch (error) {
 		console.error('Failed to remove the custom Typst template from session storage:', error);
 	}
 }
 
-function createCustomTemplateStore() {
+function createCustomTemplateStore(documentType: DocumentType) {
 	const { subscribe, set } = writable<CustomTemplate | null>(null);
+	const key = templateStorageKey(documentType);
 
 	return {
 		subscribe,
@@ -151,7 +165,7 @@ function createCustomTemplateStore() {
 			let saved: string | null;
 			try {
 				storage = window.sessionStorage;
-				saved = storage.getItem(TEMPLATE_STORAGE_KEY);
+				saved = storage.getItem(key);
 			} catch (error) {
 				console.error('Failed to access session storage for the custom Typst template:', error);
 				return;
@@ -163,16 +177,16 @@ function createCustomTemplateStore() {
 				template = JSON.parse(saved) as CustomTemplate;
 			} catch (error) {
 				console.error('Failed to parse the custom Typst template:', error);
-				removeStoredTemplate(storage);
+				removeStoredTemplate(storage, key);
 				return;
 			}
 
 			if (
 				typeof template?.name !== 'string' ||
 				typeof template?.source !== 'string' ||
-				(await validateTemplateCompatibility(template.source))
+				(await validateTemplateCompatibility(template.source, documentType))
 			) {
-				removeStoredTemplate(storage);
+				removeStoredTemplate(storage, key);
 				return;
 			}
 			set(template);
@@ -180,7 +194,7 @@ function createCustomTemplateStore() {
 		save: (template: CustomTemplate) => {
 			try {
 				if (typeof window !== 'undefined') {
-					window.sessionStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(template));
+					window.sessionStorage.setItem(key, JSON.stringify(template));
 				}
 			} catch (error) {
 				console.error('Failed to save the custom Typst template to session storage:', error);
@@ -189,7 +203,7 @@ function createCustomTemplateStore() {
 		},
 		clear: () => {
 			try {
-				if (typeof window !== 'undefined') window.sessionStorage.removeItem(TEMPLATE_STORAGE_KEY);
+				if (typeof window !== 'undefined') window.sessionStorage.removeItem(key);
 			} catch (error) {
 				console.error('Failed to clear the custom Typst template from session storage:', error);
 			}
@@ -198,4 +212,9 @@ function createCustomTemplateStore() {
 	};
 }
 
-export const customTemplateStore = createCustomTemplateStore();
+export const customTemplateStores: Record<DocumentType, ReturnType<typeof createCustomTemplateStore>> = {
+	resume: createCustomTemplateStore('resume'),
+	cv: createCustomTemplateStore('cv'),
+};
+
+export const customTemplateStore = customTemplateStores.resume;

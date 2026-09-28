@@ -12,10 +12,10 @@
 		setDocumentFonts,
 		type CompiledPreview,
 	} from '$lib/pdf-compiler';
-	import type { ResumeData } from '$lib/types';
+	import type { DocumentType, ResumeData } from '$lib/types';
 	import { defaultResumeData } from '$lib/types';
 	import { estimateOverOnePage, withDocumentType } from '$lib/resume-utils';
-	import { customTemplateStore, type CustomTemplate } from '$lib/template-store';
+	import { customTemplateStores, type CustomTemplate } from '$lib/template-store';
 	import { createPreviewScheduler } from '$lib/preview-scheduler';
 
 	import AppHeader from '$lib/components/AppHeader.svelte';
@@ -45,7 +45,8 @@
 	let showCode = $state(false);
 	let isCompiling = $state(false);
 	let compileError = $state<string | null>(null);
-	let customTemplate = $state<CustomTemplate | null>(null);
+	let customTemplates = $state<Record<DocumentType, CustomTemplate | null>>({ resume: null, cv: null });
+	let customTemplate = $derived(customTemplates[data.documentType]);
 	let typstCode = $derived(generateTypstCode(data, customTemplate?.source));
 	let preview = $state<CompiledPreview | null>(null);
 	let isPreviewLoading = $state(false);
@@ -75,18 +76,21 @@
 	onMount(() => {
 		resumeStore.loadFromStorage();
 		onetStore.loadFromStorage();
-		customTemplateStore.loadFromStorage();
+		customTemplateStores.resume.loadFromStorage();
+		customTemplateStores.cv.loadFromStorage();
 		const unsub = resumeStore.subscribe((val) => {
 			data = val;
 		});
-		const unsubTemplate = customTemplateStore.subscribe((value) => {
-			customTemplate = value;
-		});
+		const unsubTemplates = (['resume', 'cv'] as const).map((documentType) =>
+			customTemplateStores[documentType].subscribe((value) => {
+				customTemplates[documentType] = value;
+			}),
+		);
 		initCompiler().catch(console.error);
 		return () => {
 			previewScheduler.dispose();
 			unsub();
-			unsubTemplate();
+			unsubTemplates.forEach((unsubscribe) => unsubscribe());
 		};
 	});
 
