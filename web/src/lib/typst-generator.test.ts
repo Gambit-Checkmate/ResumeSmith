@@ -318,3 +318,32 @@ describe('typst download payload', () => {
 		expect(template).toBe(generateTypstTemplate(structuredClone({ ...defaultResumeData, colors: data.colors })));
 	});
 });
+
+describe('academic CV template', () => {
+	const cv = (): ResumeData => withOverrides({ documentType: 'cv' });
+
+	it('numbers pages and adds a running header only for a CV', () => {
+		const cvCode = generateTypstCode(cv());
+		expect(cvCode).toContain('Page #counter(page).display() of #counter(page).final().first()');
+		expect(cvCode).toContain('[Curriculum Vitae]');
+		expect(cvCode).toContain('title: "Curriculum Vitae | " + author-name');
+		const resumeCode = generateTypstCode(withOverrides({}));
+		expect(resumeCode).not.toContain('counter(page)');
+		expect(resumeCode).toContain('title: "Resume | " + author-name');
+		expect(resumeCode).toContain('top-margin: 0.15in');
+	});
+
+	it('uses the same content helpers, so section content is identical in both documents', () => {
+		const data = cv();
+		data.profile.summary = 'Synthetic *summary*.';
+		expect(contentOf(data)).toBe(contentOf({ ...data, documentType: 'resume' }));
+	});
+
+	it('keeps the CV layout in the content-free template and names downloads after the document', () => {
+		const data = cv();
+		expect(generateTypstTemplate(data)).toContain('[Curriculum Vitae]');
+		expect(typstDownload(data).filename).toBe('cv-template.typ');
+		data.profile.summary = 'Synthetic summary.';
+		expect(typstDownload(data).filename).toBe('cv.typ');
+	});
+});

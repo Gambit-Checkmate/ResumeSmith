@@ -9,6 +9,7 @@ import type {
 	SkillCategory,
 	Clearance,
 	SectionId,
+	DocumentType,
 } from './types';
 import { defaultFontSettings, defaultResumeData } from './types';
 import { typstString, typstMarkup, typstNumber, typstColor, typstUrl } from './typst-escape';
@@ -200,77 +201,33 @@ function generateClearance(clearance: Clearance[]): string {
 ${items}`;
 }
 
-/** Combines sanitized resume content with a compatible custom template or the built-in default. */
-export function generateTypstCode(data: ResumeData, customTemplate?: string | null): string {
-	const {
-		personalInfo,
-		profile,
-		clearance,
-		education,
-		projects,
-		workExperience,
-		leadership,
-		skills,
-		achievements,
-		publications,
-		colors,
-		fonts,
-		fontFamilies,
-		sectionOrder,
-	} = data;
+// Running header and "page N of M" footer; the first page already carries the name at the top.
+const CV_PAGE_DECORATIONS = `
+    header: context {
+      if here().page() > 1 {
+        set text(0.85em, fill: text-color.lighten(35%))
+        grid(columns: (1fr, auto), author-name, [Curriculum Vitae])
+      }
+    },
+    footer: context {
+      set text(0.85em, fill: text-color.lighten(35%))
+      align(center)[Page #counter(page).display() of #counter(page).final().first()]
+    },`;
 
-	const filledEducation = education.filter((e) => e.institution.trim() || e.degree.trim() || e.major.trim());
-	const filledProjects = projects.filter((p) => p.name.trim());
-	const filledExperience = workExperience.filter((w) => w.title.trim() || w.company.trim());
-	const filledLeadership = leadership.filter((l) => l.title.trim() || l.organization.trim());
+// Several pages read better with more room between entries than the dense one-page layout allows.
+const CV_SPACING = `
+  set par(spacing: 1.1em)
+`;
 
-	const sections: Record<SectionId, string> = {
-		profile: generateProfile(profile.summary),
-		clearance: generateClearance(clearance),
-		education: filledEducation.length > 0 ? `= Education\n${filledEducation.map(generateEducation).join('\n\n')}` : '',
-		projects: filledProjects.length > 0 ? `= Projects\n${filledProjects.map(generateProject).join('\n\n')}` : '',
-		experience:
-			filledExperience.length > 0 ? `= Experience\n${filledExperience.map(generateWorkExperience).join('\n\n')}` : '',
-		leadership:
-			filledLeadership.length > 0 ? `= Leadership\n${filledLeadership.map(generateLeadership).join('\n\n')}` : '',
-		skills: generateSkills(skills),
-		achievements: generateAchievements(achievements),
-		publications: generatePublications(publications),
-	};
-
-	// Generate sections in the specified order
-	const orderedSections = sectionOrder
-		.map((id) => sections[id])
-		.filter((section) => section.trim() !== '')
-		.join('\n\n');
-
-	const defaults = defaultResumeData.colors;
-
-	const defaultCode = `#let head-color = rgb("${typstColor(colors.headColor, defaults.headColor)}")
-#let text-color = rgb("${typstColor(colors.textColor, defaults.textColor)}")
-#let acct-color = rgb("${typstColor(colors.accentColor, defaults.accentColor)}")
-#let link-color = rgb("${typstColor(colors.linkColor, defaults.linkColor)}")
-#let font-size = ${fontSize(fonts, 'baseSize')}pt
-#let personal-info-font-size = ${fontSize(fonts, 'contactSize')}pt
-#let heading-size = ${fontSize(fonts, 'headingSize')}pt
-#let title-size = ${fontSize(fonts, 'nameSize')}pt
-#let heading-font = "${typstString(fontFamily(fontFamilies?.heading))}"
-#let body-font = "${typstString(fontFamily(fontFamilies?.body))}"
-
-#let bold(body) = {
-  text(weight: 700)[#body]
-}
-
-#let link2(target, body) = {
-  link(target, text(fill: link-color)[#body])
-}
-
-#let resume(
+/** The page setup wrapper; a CV gets real margins, looser spacing, a running header, and page numbers. */
+function resumeFunction(documentType: DocumentType): string {
+	const cv = documentType === 'cv';
+	return `#let resume(
   paper: "a4",
-  top-margin: 0.15in,
-  bottom-margin: 0.15in,
-  left-margin: 0.15in,
-  right-margin: 0.15in,
+  top-margin: ${cv ? '0.75in' : '0.15in'},
+  bottom-margin: ${cv ? '0.75in' : '0.15in'},
+  left-margin: ${cv ? '0.8in' : '0.15in'},
+  right-margin: ${cv ? '0.8in' : '0.15in'},
   font-size: font-size,
   personal-info-font-size: personal-info-font-size,
   author-name: "",
@@ -286,9 +243,9 @@ export function generateTypstCode(data: ResumeData, customTemplate?: string | nu
   body
 ) = {
   set document(
-    title: "Resume | " + author-name,
+    title: "${cv ? 'Curriculum Vitae' : 'Resume'} | " + author-name,
     author: author-name,
-    keywords: "cv, resume",
+    keywords: "${cv ? 'cv, curriculum vitae' : 'cv, resume'}",
     date: datetime.today()
   )
 
@@ -297,14 +254,14 @@ export function generateTypstCode(data: ResumeData, customTemplate?: string | nu
     margin: (
       top: top-margin, bottom: bottom-margin,
       left: left-margin, right: right-margin
-    ),
+    ),${cv ? CV_PAGE_DECORATIONS : ''}
   )
 
   set text(
     font: body-font, size: font-size, lang: "en", ligatures: false, fill: text-color
   )
-
-  show heading.where(level: 1): it => block(width: 100%)[
+${cv ? CV_SPACING : ''}
+  show heading.where(level: 1): it => block(width: 100%${cv ? ', above: 1.4em, below: 0.8em' : ''})[
     #set text(heading-size, font: heading-font, weight: "regular", fill: acct-color)
     #smallcaps(it.body)
     #v(-1.0em)
@@ -375,7 +332,76 @@ export function generateTypstCode(data: ResumeData, customTemplate?: string | nu
   ])
   v(-1em)
   body
+}`;
 }
+
+/** Combines sanitized resume content with a compatible custom template or the built-in default. */
+export function generateTypstCode(data: ResumeData, customTemplate?: string | null): string {
+	const {
+		documentType,
+		personalInfo,
+		profile,
+		clearance,
+		education,
+		projects,
+		workExperience,
+		leadership,
+		skills,
+		achievements,
+		publications,
+		colors,
+		fonts,
+		fontFamilies,
+		sectionOrder,
+	} = data;
+
+	const filledEducation = education.filter((e) => e.institution.trim() || e.degree.trim() || e.major.trim());
+	const filledProjects = projects.filter((p) => p.name.trim());
+	const filledExperience = workExperience.filter((w) => w.title.trim() || w.company.trim());
+	const filledLeadership = leadership.filter((l) => l.title.trim() || l.organization.trim());
+
+	const sections: Record<SectionId, string> = {
+		profile: generateProfile(profile.summary),
+		clearance: generateClearance(clearance),
+		education: filledEducation.length > 0 ? `= Education\n${filledEducation.map(generateEducation).join('\n\n')}` : '',
+		projects: filledProjects.length > 0 ? `= Projects\n${filledProjects.map(generateProject).join('\n\n')}` : '',
+		experience:
+			filledExperience.length > 0 ? `= Experience\n${filledExperience.map(generateWorkExperience).join('\n\n')}` : '',
+		leadership:
+			filledLeadership.length > 0 ? `= Leadership\n${filledLeadership.map(generateLeadership).join('\n\n')}` : '',
+		skills: generateSkills(skills),
+		achievements: generateAchievements(achievements),
+		publications: generatePublications(publications),
+	};
+
+	// Generate sections in the specified order
+	const orderedSections = sectionOrder
+		.map((id) => sections[id])
+		.filter((section) => section.trim() !== '')
+		.join('\n\n');
+
+	const defaults = defaultResumeData.colors;
+
+	const defaultCode = `#let head-color = rgb("${typstColor(colors.headColor, defaults.headColor)}")
+#let text-color = rgb("${typstColor(colors.textColor, defaults.textColor)}")
+#let acct-color = rgb("${typstColor(colors.accentColor, defaults.accentColor)}")
+#let link-color = rgb("${typstColor(colors.linkColor, defaults.linkColor)}")
+#let font-size = ${fontSize(fonts, 'baseSize')}pt
+#let personal-info-font-size = ${fontSize(fonts, 'contactSize')}pt
+#let heading-size = ${fontSize(fonts, 'headingSize')}pt
+#let title-size = ${fontSize(fonts, 'nameSize')}pt
+#let heading-font = "${typstString(fontFamily(fontFamilies?.heading))}"
+#let body-font = "${typstString(fontFamily(fontFamilies?.body))}"
+
+#let bold(body) = {
+  text(weight: 700)[#body]
+}
+
+#let link2(target, body) = {
+  link(target, text(fill: link-color)[#body])
+}
+
+${resumeFunction(documentType)}
 
 #let generic_2x2(cols, r1c1, r1c2, r2c1, r2c2) = {
   grid(
@@ -510,6 +536,7 @@ ${orderedSections}
 function withoutResumeContent(data: ResumeData): ResumeData {
 	return {
 		...defaultResumeData,
+		documentType: data.documentType,
 		colors: data.colors,
 		fonts: data.fonts,
 		fontFamilies: data.fontFamilies,
@@ -529,11 +556,12 @@ export function hasResumeContent(data: ResumeData): boolean {
 
 /** Picks the Typst download payload: the full resume, or the content-free template when there is nothing to export. */
 export function typstDownload(data: ResumeData, customTemplate?: string | null): { source: string; filename: string } {
+	const fallbackName = data.documentType === 'cv' ? 'cv' : 'resume';
 	if (!hasResumeContent(data)) {
-		return { source: generateTypstTemplate(data, customTemplate), filename: 'resume-template.typ' };
+		return { source: generateTypstTemplate(data, customTemplate), filename: `${fallbackName}-template.typ` };
 	}
 	return {
 		source: generateTypstCode(data, customTemplate),
-		filename: `${data.personalInfo.name.trim() || 'resume'}.typ`,
+		filename: `${data.personalInfo.name.trim() || fallbackName}.typ`,
 	};
 }
