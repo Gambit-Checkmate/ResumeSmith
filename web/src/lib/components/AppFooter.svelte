@@ -63,6 +63,7 @@
 					>TJ Raklovits</a
 				>
 			</p>
+			<p>Version: {__APP_VERSION__}</p>
 			<p>
 				Missing something?
 				<a
