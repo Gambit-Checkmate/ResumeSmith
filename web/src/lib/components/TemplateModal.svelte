@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { tick } from 'svelte';
-	import { generateTypstCode, RESUME_CONTENT_MARKER } from '$lib/typst-generator';
+	import { generateTypstTemplate, RESUME_CONTENT_MARKER } from '$lib/typst-generator';
 	import {
 		customTemplateStore,
 		MAX_TEMPLATE_SIZE,
@@ -129,7 +129,7 @@
 	}
 
 	function downloadStarterTemplate() {
-		const blob = new Blob([generateTypstCode(data)], { type: 'text/plain;charset=utf-8' });
+		const blob = new Blob([generateTypstTemplate(data)], { type: 'text/plain;charset=utf-8' });
 		downloadBlob(blob, 'resume-template.typ');
 	}
 

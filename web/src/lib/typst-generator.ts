@@ -505,3 +505,35 @@ ${orderedSections}
 
 	return `${customPreamble}\n\n${RESUME_CONTENT_MARKER}\n\n${generatedContent}`;
 }
+
+/** Keeps the styling choices but drops every piece of resume content, so the result is safe to share. */
+function withoutResumeContent(data: ResumeData): ResumeData {
+	return {
+		...defaultResumeData,
+		colors: data.colors,
+		fonts: data.fonts,
+		fontFamilies: data.fontFamilies,
+		sectionOrder: data.sectionOrder,
+	};
+}
+
+/** Generates the active template with the user's styling and no resume content. */
+export function generateTypstTemplate(data: ResumeData, customTemplate?: string | null): string {
+	return generateTypstCode(withoutResumeContent(data), customTemplate);
+}
+
+/** True when any resume content would appear in the generated Typst source. */
+export function hasResumeContent(data: ResumeData): boolean {
+	return generateTypstCode(data) !== generateTypstTemplate(data);
+}
+
+/** Picks the Typst download payload: the full resume, or the content-free template when there is nothing to export. */
+export function typstDownload(data: ResumeData, customTemplate?: string | null): { source: string; filename: string } {
+	if (!hasResumeContent(data)) {
+		return { source: generateTypstTemplate(data, customTemplate), filename: 'resume-template.typ' };
+	}
+	return {
+		source: generateTypstCode(data, customTemplate),
+		filename: `${data.personalInfo.name.trim() || 'resume'}.typ`,
+	};
+}
