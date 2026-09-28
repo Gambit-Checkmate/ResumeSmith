@@ -1,5 +1,14 @@
 import { writable } from 'svelte/store';
-import type { CustomSection, CustomSectionEntry, DocumentType, Publication, ResumeData, SectionKey } from './types';
+import type {
+	CustomSection,
+	CustomSectionEntry,
+	DocumentType,
+	Presentation,
+	Publication,
+	ResumeData,
+	SectionKey,
+} from './types';
+import { isPresentationKind } from './presentation';
 import { isPublicationStatus } from './publication';
 import { generateId } from './resume-utils';
 import { customSectionKey, defaultResumeData, defaultSectionOrder, documentTypes } from './types';
@@ -51,6 +60,18 @@ function normalizePublications(value: unknown, fallback: Publication[]): Publica
 	}));
 }
 
+function normalizePresentations(value: unknown): Presentation[] {
+	return objects(value).map((presentation) => ({
+		id: text(presentation.id) || generateId(),
+		title: text(presentation.title),
+		event: text(presentation.event),
+		location: text(presentation.location),
+		date: text(presentation.date),
+		kind: isPresentationKind(presentation.kind) ? presentation.kind : 'contributed',
+		url: text(presentation.url),
+	}));
+}
+
 // Old saved data can predate fields added to ResumeData since it was written
 // (e.g. clearance); fill those in from defaults instead of leaving them undefined.
 export function mergeWithDefaults(saved: Partial<ResumeData>): ResumeData {
@@ -90,6 +111,7 @@ export function mergeWithDefaults(saved: Partial<ResumeData>): ResumeData {
 		achievements: arrays('achievements'),
 		publications: normalizePublications(saved.publications, defaults.publications),
 		publicationAuthorName: text(saved.publicationAuthorName),
+		presentations: normalizePresentations(saved.presentations),
 		customSections,
 		sectionOrder,
 	};

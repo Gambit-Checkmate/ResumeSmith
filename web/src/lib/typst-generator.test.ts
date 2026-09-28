@@ -7,7 +7,7 @@ import {
 	RESUME_CONTENT_MARKER,
 } from './typst-generator';
 import { defaultResumeData, defaultFontSettings } from './types';
-import type { Publication, ResumeData, WorkExperience } from './types';
+import type { Presentation, Publication, ResumeData, WorkExperience } from './types';
 
 function baseData(clearance: ResumeData['clearance']): ResumeData {
 	return { ...structuredClone(defaultResumeData), clearance };
@@ -153,6 +153,35 @@ describe('typed publication fields', () => {
 		);
 		expect(content).not.toContain('javascript');
 		expect(content).not.toContain('#link(');
+	});
+});
+
+describe('presentations section', () => {
+	const talk: Presentation = {
+		id: 't',
+		title: 'Example Talk',
+		event: 'Example Conference',
+		location: 'Example City',
+		date: '2023-10',
+		kind: 'invited',
+		url: '',
+	};
+
+	it('renders event, location, kind, and date', () => {
+		expect(contentOf(withOverrides({ presentations: [talk] }))).toContain(
+			'= Presentations\n#achievement-heading("Example Talk", "Oct 2023")[\n_Example Conference_, Example City. Invited talk]',
+		);
+	});
+
+	it('omits untitled talks and unsafe links, and escapes every field', () => {
+		expect(contentOf(withOverrides({ presentations: [{ ...talk, title: ' ' }] }))).not.toContain('= Presentations');
+		const content = contentOf(
+			withOverrides({
+				presentations: [{ ...talk, title: 'T") #x', event: '_E_]', location: '#L', url: 'javascript:alert(1)' }],
+			}),
+		);
+		expect(content).toContain('#achievement-heading("T\\") #x", "Oct 2023")[\n_\\_E\\_\\]_, \\#L. Invited talk]');
+		expect(content).not.toContain('javascript');
 	});
 });
 

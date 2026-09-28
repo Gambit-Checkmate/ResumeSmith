@@ -78,6 +78,18 @@ export interface Publication {
 	status: PublicationStatus;
 }
 
+export type PresentationKind = 'invited' | 'contributed' | 'poster';
+
+export interface Presentation {
+	id: string;
+	title: string;
+	event: string;
+	location: string;
+	date: string;
+	kind: PresentationKind;
+	url: string;
+}
+
 // Resume extraction predates the typed citation fields and still returns only these.
 export type ResumePublication = Pick<Publication, 'title' | 'authors' | 'venue' | 'date' | 'url'>;
 
@@ -168,7 +180,8 @@ export type SectionId =
 	| 'leadership'
 	| 'skills'
 	| 'achievements'
-	| 'publications';
+	| 'publications'
+	| 'presentations';
 
 export const defaultSectionOrder: SectionId[] = [
 	'profile',
@@ -180,6 +193,7 @@ export const defaultSectionOrder: SectionId[] = [
 	'skills',
 	'achievements',
 	'publications',
+	'presentations',
 ];
 
 // Custom sections join the section order as `custom:<section id>`.
@@ -202,6 +216,7 @@ export const sectionLabels: Record<SectionId, string> = {
 	skills: 'Skills',
 	achievements: 'Achievements',
 	publications: 'Publications',
+	presentations: 'Presentations',
 };
 
 export interface ResumeData {
@@ -218,6 +233,7 @@ export interface ResumeData {
 	publications: Publication[];
 	// The owner's name as it appears in author lists, bolded in citations.
 	publicationAuthorName: string;
+	presentations: Presentation[];
 	customSections: CustomSection[];
 	colors: ColorSettings;
 	fonts: FontSettings;
@@ -255,6 +271,7 @@ export const defaultResumeData: ResumeData = {
 	achievements: [],
 	publications: [],
 	publicationAuthorName: '',
+	presentations: [],
 	customSections: [],
 	colors: {
 		headColor: '#22227f',

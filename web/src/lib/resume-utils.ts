@@ -76,6 +76,7 @@ export function buildResumeFromExtraction(ex: ExtractedResume): ResumeData {
 			status: 'published' as const,
 		})),
 		publicationAuthorName: '',
+		presentations: [],
 		customSections: [],
 		clearance: withId(ex.clearance ?? []),
 		colors: { ...defaultResumeData.colors },

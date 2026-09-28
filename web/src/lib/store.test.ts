@@ -22,7 +22,7 @@ describe('mergeWithDefaults', () => {
 			sectionOrder: withoutPublications.sectionOrder.filter((id) => id !== 'publications'),
 		});
 		expect(merged.publications).toEqual([]);
-		expect(merged.sectionOrder.at(-1)).toBe('publications');
+		expect(merged.sectionOrder).toContain('publications');
 	});
 
 	it('loads data saved before document types existed as a resume', () => {
@@ -96,6 +96,21 @@ describe('mergeWithDefaults', () => {
 		expect(merged.publications[1].status).toBe('published');
 		expect(merged.publications[1].volume).toBe('');
 		expect(merged.publicationAuthorName).toBe('');
+	});
+
+	it('adds presentations to data saved before the section existed and repairs malformed entries', () => {
+		const { presentations, ...legacy } = defaultResumeData;
+		const merged = mergeWithDefaults({
+			...legacy,
+			sectionOrder: legacy.sectionOrder.filter((id) => id !== 'presentations'),
+		});
+		expect(merged.presentations).toEqual([]);
+		expect(merged.sectionOrder.at(-1)).toBe('presentations');
+
+		const repaired = mergeWithDefaults({ presentations: [{ id: 'p', title: 'Talk', kind: 'keynote' }, 5] as never });
+		expect(repaired.presentations).toEqual([
+			{ id: 'p', title: 'Talk', event: '', location: '', date: '', kind: 'contributed', url: '' },
+		]);
 	});
 
 	it('preserves fields present in the saved data', () => {

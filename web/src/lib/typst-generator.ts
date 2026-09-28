@@ -6,6 +6,7 @@ import type {
 	Leadership,
 	Achievement,
 	Publication,
+	Presentation,
 	SkillCategory,
 	Clearance,
 	SectionKey,
@@ -24,6 +25,7 @@ import {
 	publicationStatusLabels,
 	venueMarkup,
 } from './publication';
+import { isPresentationKind, presentationKindLabels } from './presentation';
 
 export const RESUME_CONTENT_MARKER = '// ========== RESUME CONTENT ==========';
 
@@ -204,6 +206,27 @@ function generateCvPublications(publications: Publication[], ownerName: string):
 	if (!items) return '';
 
 	return `= Publications
+${items}`;
+}
+
+function generatePresentations(presentations: Presentation[]): string {
+	const items = presentations
+		.filter((p) => p.title.trim())
+		.map((p) => {
+			const where = [p.event.trim() ? `_${typstMarkup(p.event.trim())}_` : '', typstMarkup(p.location.trim())]
+				.filter(Boolean)
+				.join(', ');
+			const details = [where, isPresentationKind(p.kind) ? presentationKindLabels[p.kind] : ''].filter(Boolean);
+			const url = typstUrl(p.url);
+			if (url) details.push(`#link("${typstString(url)}")`);
+			const body = details.length ? `\n${details.join('. ')}` : '';
+			return `#achievement-heading("${typstString(p.title)}", "${typstString(formatDisplayDate(p.date))}")[${body}]`;
+		})
+		.join('\n\n');
+
+	if (!items) return '';
+
+	return `= Presentations
 ${items}`;
 }
 
@@ -393,6 +416,7 @@ export function generateTypstCode(data: ResumeData, customTemplate?: string | nu
 		achievements,
 		publications,
 		publicationAuthorName,
+		presentations,
 		colors,
 		fonts,
 		fontFamilies,
@@ -420,6 +444,7 @@ export function generateTypstCode(data: ResumeData, customTemplate?: string | nu
 			documentType === 'cv'
 				? generateCvPublications(publications, publicationAuthorName)
 				: generateResumePublications(publications, publicationAuthorName),
+		presentations: generatePresentations(presentations),
 	};
 	for (const section of customSections) sections[customSectionKey(section.id)] = generateCustomSection(section);
 

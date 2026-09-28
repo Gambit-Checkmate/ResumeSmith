@@ -103,6 +103,17 @@ const RESUME_CONTRACT_FIXTURE: ResumeData = {
 		},
 	],
 	publicationAuthorName: 'T. Test',
+	presentations: [
+		{
+			id: 'presentation',
+			title: 'Example Talk',
+			event: 'Example Conference',
+			location: 'Example City',
+			date: '2024-01',
+			kind: 'invited',
+			url: 'example.com/talk',
+		},
+	],
 	customSections: [
 		{
 			id: 'custom',
