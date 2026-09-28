@@ -108,6 +108,23 @@ export const defaultFontSettings: FontSettings = {
 	contactSize: 11.2,
 };
 
+// Academic CVs run several pages, so they start from a more readable size than the dense one-page resume.
+export const cvFontSettings: FontSettings = {
+	baseSize: 10.5,
+	nameSize: 20.7,
+	headingSize: 14,
+	contactSize: 10,
+};
+
+export type DocumentType = 'resume' | 'cv';
+
+export const documentTypes: DocumentType[] = ['resume', 'cv'];
+
+export const documentTypeLabels: Record<DocumentType, string> = {
+	resume: 'Resume',
+	cv: 'Academic CV',
+};
+
 export interface FontFamilies {
 	heading: string;
 	body: string;
@@ -154,6 +171,7 @@ export const sectionLabels: Record<SectionId, string> = {
 };
 
 export interface ResumeData {
+	documentType: DocumentType;
 	personalInfo: PersonalInfo;
 	profile: Profile;
 	clearance: Clearance[];
@@ -171,6 +189,7 @@ export interface ResumeData {
 }
 
 export const defaultResumeData: ResumeData = {
+	documentType: 'resume',
 	personalInfo: {
 		name: '',
 		phone: '',

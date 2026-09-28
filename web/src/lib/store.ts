@@ -1,6 +1,6 @@
 import { writable } from 'svelte/store';
-import type { ResumeData, SectionId } from './types';
-import { defaultResumeData, defaultSectionOrder } from './types';
+import type { DocumentType, ResumeData, SectionId } from './types';
+import { defaultResumeData, defaultSectionOrder, documentTypes } from './types';
 
 // Old saved data can predate fields added to ResumeData since it was written
 // (e.g. clearance); fill those in from defaults instead of leaving them undefined.
@@ -19,6 +19,10 @@ export function mergeWithDefaults(saved: Partial<ResumeData>): ResumeData {
 	return {
 		...defaults,
 		...saved,
+		// Data saved before document types existed is a resume.
+		documentType: documentTypes.includes(saved.documentType as DocumentType)
+			? (saved.documentType as DocumentType)
+			: defaults.documentType,
 		personalInfo: { ...defaults.personalInfo, ...saved.personalInfo },
 		profile: { ...defaults.profile, ...saved.profile },
 		colors: { ...defaults.colors, ...saved.colors },

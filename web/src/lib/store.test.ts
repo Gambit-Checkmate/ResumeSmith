@@ -25,6 +25,16 @@ describe('mergeWithDefaults', () => {
 		expect(merged.sectionOrder.at(-1)).toBe('publications');
 	});
 
+	it('loads data saved before document types existed as a resume', () => {
+		const { documentType, ...legacy } = defaultResumeData;
+		expect(mergeWithDefaults(legacy).documentType).toBe('resume');
+	});
+
+	it('keeps a saved CV document type and rejects an unknown one', () => {
+		expect(mergeWithDefaults({ documentType: 'cv' }).documentType).toBe('cv');
+		expect(mergeWithDefaults({ documentType: 'letter' as never }).documentType).toBe('resume');
+	});
+
 	it('preserves fields present in the saved data', () => {
 		const saved = { ...defaultResumeData, personalInfo: { ...defaultResumeData.personalInfo, name: 'Ada' } };
 		const merged = mergeWithDefaults(saved);
