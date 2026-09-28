@@ -14,7 +14,7 @@
 	} from '$lib/pdf-compiler';
 	import type { ResumeData } from '$lib/types';
 	import { defaultResumeData } from '$lib/types';
-	import { estimateOverOnePage } from '$lib/resume-utils';
+	import { estimateOverOnePage, withDocumentType } from '$lib/resume-utils';
 	import { customTemplateStore, type CustomTemplate } from '$lib/template-store';
 	import { createPreviewScheduler } from '$lib/preview-scheduler';
 
@@ -53,7 +53,7 @@
 	let templateOpen = $state(false);
 	let tailorOpen = $state(false);
 	let showReviewBanner = $state(false);
-	let estimatedOverOnePage = $derived(estimateOverOnePage(data));
+	let estimatedOverOnePage = $derived(data.documentType === 'resume' && estimateOverOnePage(data));
 	let compiledPageCount = $derived(preview?.pages.length ?? null);
 
 	const previewScheduler = createPreviewScheduler(compileToPreview, {
@@ -140,6 +140,12 @@
 -->
 <div class="min-h-screen lg:h-screen lg:overflow-hidden bg-gray-100 flex flex-col">
 	<AppHeader
+		documentType={data.documentType}
+		onDocumentTypeChange={(documentType) => {
+			// Occupational tailoring does not apply to academic CVs.
+			if (documentType === 'cv') tailorOpen = false;
+			data = withDocumentType(data, documentType);
+		}}
 		bind:showCode
 		{isCompiling}
 		{compileError}
@@ -153,12 +159,14 @@
 		hasCustomTemplate={customTemplate !== null}
 	/>
 
-	<OnetDrawer
-		bind:open={tailorOpen}
-		bind:data
-		pageCount={compiledPageCount}
-		onInserted={() => (showReviewBanner = true)}
-	/>
+	{#if data.documentType === 'resume'}
+		<OnetDrawer
+			bind:open={tailorOpen}
+			bind:data
+			pageCount={compiledPageCount}
+			onInserted={() => (showReviewBanner = true)}
+		/>
+	{/if}
 
 	<main class="w-full max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 lg:flex-1 lg:min-h-0">
 		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:h-full lg:min-h-0">
@@ -206,7 +214,13 @@
 			</div>
 
 			<!-- Preview Panel -->
-			<PreviewPanel {showCode} {typstCode} {preview} {isPreviewLoading} />
+			<PreviewPanel
+				{showCode}
+				{typstCode}
+				{preview}
+				{isPreviewLoading}
+				documentLabel={data.documentType === 'cv' ? 'CV' : 'Resume'}
+			/>
 		</div>
 	</main>
 

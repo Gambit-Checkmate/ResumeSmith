@@ -7,14 +7,17 @@
 		typstCode,
 		preview,
 		isPreviewLoading,
+		documentLabel,
 	}: {
 		showCode: boolean;
 		typstCode: string;
 		preview: CompiledPreview | null;
 		isPreviewLoading: boolean;
+		documentLabel: string;
 	} = $props();
 
 	let copied = $state(false);
+	let pageIndex = $state(0);
 	let copiedTimer: ReturnType<typeof setTimeout> | undefined;
 
 	async function copyToClipboard() {
@@ -31,7 +34,7 @@
 	<h2 class="text-lg font-semibold mb-4 text-white">
 		{showCode
 			? 'Typst Code'
-			: `Resume Preview${preview ? ` · ${preview.pages.length} ${preview.pages.length === 1 ? 'page' : 'pages'}` : ''}`}
+			: `${documentLabel} Preview${preview ? ` · ${preview.pages.length} ${preview.pages.length === 1 ? 'page' : 'pages'}` : ''}`}
 	</h2>
 
 	{#if showCode}
@@ -49,7 +52,7 @@
 					<span>Compiling preview...</span>
 				</div>
 			{:else if preview}
-				<PaginatedPreview {preview} />
+				<PaginatedPreview {preview} {documentLabel} bind:pageIndex />
 			{:else}
 				<div class="flex items-center justify-center h-full text-gray-400">
 					<span>Preview will appear here</span>
