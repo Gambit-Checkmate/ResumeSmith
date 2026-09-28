@@ -1,5 +1,6 @@
 <script lang="ts">
 	import '../app.css';
+	import MobileWarning from '$lib/components/MobileWarning.svelte';
 	let { children } = $props();
 </script>
 
@@ -16,5 +17,7 @@
 		content="Forge a polished, job-ready resume with live previews, AI-assisted tailoring, and Typst PDF export."
 	/>
 </svelte:head>
+
+<MobileWarning />
 
 {@render children()}
