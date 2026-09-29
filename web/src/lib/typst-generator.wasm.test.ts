@@ -91,6 +91,27 @@ it('compiles CV references with every citation field and hostile values', TIMEOU
 	await expect($typst.svg({ mainContent: generateTypstCode(data) })).resolves.toBeTruthy();
 });
 
+it('compiles owner names followed immediately by a field or call suffix', TIMEOUT, async () => {
+	const data = { ...structuredClone(defaultResumeData), documentType: 'cv' as const };
+	data.publicationAuthorName = 'Doe';
+	data.publications = [
+		{
+			id: 'p',
+			title: 'Punctuation in author names',
+			authors: 'Doe.A, Doe(ed.)',
+			venue: '',
+			date: '2021',
+			url: '',
+			volume: '',
+			issue: '',
+			pages: '',
+			doi: '',
+			status: 'published',
+		},
+	];
+	await expect($typst.svg({ mainContent: generateTypstCode(data) })).resolves.toBeTruthy();
+});
+
 it('embeds text byte-for-byte, including line breaks, quotes, and backslashes', TIMEOUT, async () => {
 	const text = 'line one\n% comment "quoted" \\ back\r\n\ttabbed ü';
 	const bytes = [...new TextEncoder().encode(text)].join(', ');

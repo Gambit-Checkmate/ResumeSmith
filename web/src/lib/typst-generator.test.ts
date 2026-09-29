@@ -105,7 +105,7 @@ describe('typed publication fields', () => {
 	it('adds citation details and the owner name to the resume layout', () => {
 		const content = contentOf(withOverrides({ publications: [paper], publicationAuthorName: 'Test, A.' }));
 		expect(content).toContain(
-			'#achievement-heading("Fast Parsing", "May 2022")[\nDoe, J., #strong[Test, A.]. _Journal of Tests_, 12(3), 45\\-67. #link("https://doi.org/10.1234/abc")[doi:10.1234\\/abc]]',
+			'#achievement-heading("Fast Parsing", "May 2022")[\nDoe, J., #strong[Test, A.];. _Journal of Tests_, 12(3), 45\\-67. #link("https://doi.org/10.1234/abc")[doi:10.1234\\/abc]]',
 		);
 	});
 
@@ -123,7 +123,7 @@ describe('typed publication fields', () => {
 			}),
 		);
 		expect(content).toContain(
-			'= Publications\n+ #strong[Doe, J.], Test, A. (2022). Fast Parsing. _Journal of Tests_, 12(3), 45\\-67. #link("https://doi.org/10.1234/abc")[doi:10.1234\\/abc]\n+ #strong[Doe, J.], Test, A. (in press). Second?',
+			'= Publications\n+ #strong[Doe, J.];, Test, A. (2022). Fast Parsing. _Journal of Tests_, 12(3), 45\\-67. #link("https://doi.org/10.1234/abc")[doi:10.1234\\/abc]\n+ #strong[Doe, J.];, Test, A. (in press). Second?',
 		);
 		expect(content).not.toContain('achievement-heading("Fast Parsing"');
 	});
@@ -149,7 +149,7 @@ describe('typed publication fields', () => {
 			}),
 		);
 		expect(content).toContain(
-			'+ #strong[\\*me\\*], \\[x\\] (2022). T\\] \\#eval(\\"1\\"). _\\_V\\__, \\#1(\\$2), 3\\].',
+			'+ #strong[\\*me\\*];, \\[x\\] (2022). T\\] \\#eval(\\"1\\"). _\\_V\\__, \\#1(\\$2), 3\\].',
 		);
 		expect(content).not.toContain('javascript');
 		expect(content).not.toContain('#link(');

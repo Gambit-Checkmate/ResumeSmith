@@ -36,7 +36,7 @@ export function authorMarkup(authors: string, ownerName: string): string {
 	if (!name) return typstMarkup(authors);
 	return authors
 		.split(new RegExp(`(${escapeRegExp(name)})`))
-		.map((part, index) => (index % 2 === 1 ? `#strong[${typstMarkup(part)}]` : typstMarkup(part)))
+		.map((part, index) => (index % 2 === 1 ? `#strong[${typstMarkup(part)}];` : typstMarkup(part)))
 		.join('');
 }
 

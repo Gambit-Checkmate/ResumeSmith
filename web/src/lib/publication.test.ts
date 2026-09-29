@@ -40,11 +40,15 @@ describe('normalizeDoi', () => {
 
 describe('authorMarkup', () => {
 	it('bolds every occurrence of the owner name', () => {
-		expect(authorMarkup('Doe, J., Roe, R., Doe, J.', 'Doe, J.')).toBe('#strong[Doe, J.], Roe, R., #strong[Doe, J.]');
+		expect(authorMarkup('Doe, J., Roe, R., Doe, J.', 'Doe, J.')).toBe('#strong[Doe, J.];, Roe, R., #strong[Doe, J.];');
 	});
 
 	it('treats the owner name literally rather than as a pattern', () => {
-		expect(authorMarkup('A.B., AxB', 'A.B')).toBe('#strong[A.B]., AxB');
+		expect(authorMarkup('A.B., AxB', 'A.B')).toBe('#strong[A.B];., AxB');
+	});
+
+	it('terminates bold markup before punctuation that Typst may parse as code', () => {
+		expect(authorMarkup('Doe.A, Doe(ed.)', 'Doe')).toBe('#strong[Doe];.A, #strong[Doe];(ed.)');
 	});
 
 	it('only escapes when no owner name is set', () => {
