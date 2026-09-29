@@ -1,6 +1,7 @@
 import {
 	MAX_DOCUMENT_BYTES,
 	MAX_EXTRACTED_TEXT_CHARS,
+	MAX_PDF_PAGES,
 	SUPPORTED_DOCUMENT_EXTENSIONS,
 	extensionOf,
 	measureDocumentQuality,
@@ -9,7 +10,6 @@ import {
 } from './document-quality';
 
 const MIN_TEXT_WORDS_PER_PDF_PAGE = 15;
-const MAX_PDF_PAGES = 10;
 const MAX_OCR_PAGES = 4;
 const OCR_SCALE = 1.6;
 
@@ -47,7 +47,8 @@ async function extractDocx(file: File): Promise<string> {
 
 async function extractPdf(
 	file: File,
-	onProgress?: ProgressHandler,
+	onProgress: ProgressHandler | undefined,
+	maxPages: number,
 ): Promise<{
 	text: string;
 	method: ExtractionMethod;
@@ -63,7 +64,7 @@ async function extractPdf(
 	pdfjs.GlobalWorkerOptions.workerSrc = workerModule.default;
 	const loadingTask = pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) });
 	const pdf = await loadingTask.promise;
-	if (pdf.numPages > MAX_PDF_PAGES) throw new Error(`PDFs are limited to ${MAX_PDF_PAGES} pages.`);
+	if (pdf.numPages > maxPages) throw new Error(`PDFs are limited to ${maxPages} pages.`);
 
 	const pageTexts: string[] = [];
 	const ocrCandidates: number[] = [];
@@ -138,7 +139,11 @@ async function extractPdf(
 }
 
 /** Extracts document text locally, applying OCR only to PDF pages without a usable text layer. */
-export async function preflightDocument(file: File, onProgress?: ProgressHandler): Promise<PreflightResult> {
+export async function preflightDocument(
+	file: File,
+	onProgress?: ProgressHandler,
+	{ maxPdfPages = MAX_PDF_PAGES }: { maxPdfPages?: number } = {},
+): Promise<PreflightResult> {
 	if (file.size > MAX_DOCUMENT_BYTES) throw new Error('File is too large (max 5 MB).');
 	const extension = extensionOf(file.name);
 	if (!SUPPORTED_DOCUMENT_EXTENSIONS.includes(extension as (typeof SUPPORTED_DOCUMENT_EXTENSIONS)[number])) {
@@ -155,7 +160,7 @@ export async function preflightDocument(file: File, onProgress?: ProgressHandler
 		ocrAverageConfidence: number | null;
 	};
 	if (extension === 'pdf') {
-		extracted = await extractPdf(file, onProgress);
+		extracted = await extractPdf(file, onProgress, maxPdfPages);
 	} else {
 		onProgress?.({ stage: 'extracting', progress: 0.5, message: 'Extracting document text...' });
 		const text = normalizeText(extension === 'docx' ? await extractDocx(file) : await file.text());

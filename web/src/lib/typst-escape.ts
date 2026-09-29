@@ -33,6 +33,25 @@ export function typstString(value: string): string {
 	return normalize(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 }
 
+/**
+ * Escapes a multi-line value for a Typst string literal while keeping its line structure, for
+ * embedded files such as BibTeX, where a `%` comment runs to the end of its line.
+ */
+export function typstTextString(value: string): string {
+	let out = '';
+	for (const ch of value) {
+		const code = ch.codePointAt(0) ?? 0;
+		if (ch === '\\') out += '\\\\';
+		else if (ch === '"') out += '\\"';
+		else if (code === LINE_FEED) out += '\\n';
+		else if (code === CARRIAGE_RETURN) out += '\\r';
+		else if (code === TAB) out += '\\t';
+		else if (code < SPACE || code === DELETE) continue;
+		else out += ch;
+	}
+	return out;
+}
+
 const MARKUP_SPECIAL = /[\\#$*_`<>@~[\]/\-+='"]/g;
 
 /** Escapes a value for use in Typst markup, e.g. a bullet or the profile summary. */

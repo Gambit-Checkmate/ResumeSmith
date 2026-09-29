@@ -37,6 +37,7 @@ const ARRAY_SECTIONS = [
 	'skills',
 	'achievements',
 	'publications',
+	'presentations',
 	'clearance',
 ] as const;
 
@@ -48,4 +49,10 @@ export function setHighlightsFromData(data: ResumeData): void {
 		const arr = data[section] as unknown as Record<string, unknown>[];
 		arr.forEach((item, i) => markObject(`${section}.${i}.`, item));
 	}
+	data.customSections.forEach((section, i) => {
+		if (section.heading.trim()) aiFilled.add(`customSections.${i}.heading`);
+		section.entries.forEach((entry, j) =>
+			markObject(`customSections.${i}.entries.${j}.`, entry as unknown as Record<string, unknown>),
+		);
+	});
 }

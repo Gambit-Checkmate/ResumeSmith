@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { typstString, typstMarkup, typstNumber, typstColor, typstUrl } from './typst-escape';
+import { typstTextString, typstString, typstMarkup, typstNumber, typstColor, typstUrl } from './typst-escape';
 
 describe('typstString', () => {
 	it('escapes backslashes and quotes', () => {
@@ -133,5 +133,15 @@ describe('typstUrl', () => {
 
 	it('returns an empty string for empty input', () => {
 		expect(typstUrl('')).toBe('');
+	});
+});
+
+describe('typstTextString', () => {
+	it('keeps line structure as escape sequences and escapes quotes and backslashes', () => {
+		expect(typstTextString('a"b\\c\n% x\r\td')).toBe('a\\"b\\\\c\\n% x\\r\\td');
+	});
+
+	it('drops other control characters', () => {
+		expect(typstTextString('a\u0000b\u007fc')).toBe('abc');
 	});
 });

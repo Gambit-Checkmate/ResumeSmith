@@ -6,6 +6,8 @@ vi.mock('./pdf-compiler', () => ({ compileToPdf: vi.fn(async () => new Uint8Arra
 import { compileToPdf } from './pdf-compiler';
 import {
 	customTemplateStore,
+	customTemplateStores,
+	templateStorageKey,
 	MAX_TEMPLATE_SIZE,
 	TEMPLATE_STORAGE_KEY,
 	validateTemplateCompatibility,
@@ -42,6 +44,7 @@ describe('custom Typst templates', () => {
 		vi.mocked(compileToPdf).mockResolvedValue(new Uint8Array([1]));
 		vi.stubGlobal('window', { sessionStorage: storage() });
 		customTemplateStore.clear();
+		customTemplateStores.cv.clear();
 	});
 
 	it('requires the content marker and all template helpers', () => {
@@ -164,5 +167,40 @@ describe('custom Typst templates', () => {
 
 		await expect(customTemplateStore.loadFromStorage()).resolves.toBeUndefined();
 		expect(get(customTemplateStore)).toBeNull();
+	});
+
+	it('keeps separate templates per document type and leaves the resume key unchanged', async () => {
+		expect(templateStorageKey('resume')).toBe(TEMPLATE_STORAGE_KEY);
+		expect(templateStorageKey('cv')).not.toBe(TEMPLATE_STORAGE_KEY);
+
+		const resumeTemplate = { name: 'resume.typ', source: VALID_TEMPLATE };
+		const cvTemplate = { name: 'cv.typ', source: `${VALID_TEMPLATE}\n` };
+		customTemplateStore.save(resumeTemplate);
+		customTemplateStores.cv.save(cvTemplate);
+		expect(get(customTemplateStores.resume)).toEqual(resumeTemplate);
+		expect(get(customTemplateStores.cv)).toEqual(cvTemplate);
+
+		customTemplateStores.cv.clear();
+		expect(get(customTemplateStores.resume)).toEqual(resumeTemplate);
+		expect(window.sessionStorage.getItem(TEMPLATE_STORAGE_KEY)).not.toBeNull();
+		expect(window.sessionStorage.getItem(templateStorageKey('cv'))).toBeNull();
+	});
+
+	it('validates a CV template against a CV fixture', async () => {
+		expect(await validateTemplateCompatibility(VALID_TEMPLATE, 'cv')).toBeNull();
+		const compiled = vi.mocked(compileToPdf).mock.calls[0][0];
+		expect(compiled).toContain('#show: resume.with(');
+		expect(compiled).toContain('= Example Section');
+
+		vi.mocked(compileToPdf).mockRejectedValueOnce(new Error('unexpected argument'));
+		expect(await validateTemplateCompatibility(VALID_TEMPLATE, 'cv')).toContain('CV format');
+	});
+
+	it('restores a stored CV template only after compiling it against the CV fixture', async () => {
+		const template = { name: 'cv.typ', source: VALID_TEMPLATE };
+		window.sessionStorage.setItem(templateStorageKey('cv'), JSON.stringify(template));
+		await customTemplateStores.cv.loadFromStorage();
+		expect(get(customTemplateStores.cv)).toEqual(template);
+		expect(get(customTemplateStores.resume)).toBeNull();
 	});
 });

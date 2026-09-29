@@ -7,7 +7,7 @@ import {
 	RESUME_CONTENT_MARKER,
 } from './typst-generator';
 import { defaultResumeData, defaultFontSettings } from './types';
-import type { ResumeData, WorkExperience } from './types';
+import type { Presentation, Publication, ResumeData, WorkExperience } from './types';
 
 function baseData(clearance: ResumeData['clearance']): ResumeData {
 	return { ...structuredClone(defaultResumeData), clearance };
@@ -55,6 +55,11 @@ describe('generateTypstCode publications section', () => {
 		venue: 'Journal of Tests',
 		date: '2022-05',
 		url: '',
+		volume: '',
+		issue: '',
+		pages: '',
+		doi: '',
+		status: 'published' as const,
 	};
 
 	it('omits the Publications heading when no entry has a title', () => {
@@ -79,6 +84,129 @@ describe('generateTypstCode publications section', () => {
 	it('escapes markup in publication fields', () => {
 		const content = contentOf(withOverrides({ publications: [{ ...paper, venue: 'Conf] #eval("1")' }] }));
 		expect(content).toContain(String.raw`_Conf\] \#eval(\"1\")_`);
+	});
+});
+
+describe('typed publication fields', () => {
+	const paper: Publication = {
+		id: 'p1',
+		title: 'Fast Parsing',
+		authors: 'Doe, J., Test, A.',
+		venue: 'Journal of Tests',
+		date: '2022-05',
+		url: '',
+		volume: '12',
+		issue: '3',
+		pages: '45-67',
+		doi: 'https://doi.org/10.1234/abc',
+		status: 'published',
+	};
+
+	it('adds citation details and the owner name to the resume layout', () => {
+		const content = contentOf(withOverrides({ publications: [paper], publicationAuthorName: 'Test, A.' }));
+		expect(content).toContain(
+			'#achievement-heading("Fast Parsing", "May 2022")[\nDoe, J., #strong[Test, A.];. _Journal of Tests_, 12(3), 45\\-67. #link("https://doi.org/10.1234/abc")[doi:10.1234\\/abc]]',
+		);
+	});
+
+	it('shows a non-published status in the resume layout', () => {
+		const content = contentOf(withOverrides({ publications: [{ ...paper, status: 'under review' }] }));
+		expect(content).toContain('. Under review. ');
+	});
+
+	it('lists full references in a CV', () => {
+		const content = contentOf(
+			withOverrides({
+				documentType: 'cv',
+				publications: [paper, { ...paper, id: 'p2', title: 'Second?', status: 'in press' }],
+				publicationAuthorName: 'Doe, J.',
+			}),
+		);
+		expect(content).toContain(
+			'= Publications\n+ #strong[Doe, J.];, Test, A. (2022). Fast Parsing. _Journal of Tests_, 12(3), 45\\-67. #link("https://doi.org/10.1234/abc")[doi:10.1234\\/abc]\n+ #strong[Doe, J.];, Test, A. (in press). Second?',
+		);
+		expect(content).not.toContain('achievement-heading("Fast Parsing"');
+	});
+
+	it('drops an invalid DOI and escapes every field in a CV reference', () => {
+		const content = contentOf(
+			withOverrides({
+				documentType: 'cv',
+				publicationAuthorName: '*me*',
+				publications: [
+					{
+						...paper,
+						authors: '*me*, [x]',
+						title: 'T] #eval("1")',
+						venue: '_V_',
+						volume: '#1',
+						issue: '$2',
+						pages: '3]',
+						doi: 'javascript:alert(1)',
+						url: 'javascript:alert(1)',
+					},
+				],
+			}),
+		);
+		expect(content).toContain(
+			'+ #strong[\\*me\\*];, \\[x\\] (2022). T\\] \\#eval(\\"1\\"). _\\_V\\__, \\#1(\\$2), 3\\].',
+		);
+		expect(content).not.toContain('javascript');
+		expect(content).not.toContain('#link(');
+	});
+});
+
+describe('CV bibliography', () => {
+	const bibliography = { name: 'refs.bib', source: '@misc{a, title={T}}', style: 'ieee' as const };
+
+	it('renders the bibliography after typed references in a CV only', () => {
+		const data = withOverrides({ documentType: 'cv' });
+		const content = contentOf({ ...data });
+		expect(content).not.toContain('bibliography(');
+		const withBib = generateTypstCode(data, null, bibliography);
+		expect(withBib).toContain(
+			'= Publications\n#bibliography(bytes("@misc{a, title={T}}"), title: none, full: true, style: "ieee")',
+		);
+		expect(generateTypstCode(withOverrides({}), null, bibliography)).not.toContain('bibliography(');
+	});
+
+	it('counts a bibliography as CV content but keeps it out of the template', () => {
+		const data = withOverrides({ documentType: 'cv' });
+		expect(hasResumeContent(data)).toBe(false);
+		expect(hasResumeContent(data, bibliography)).toBe(true);
+		const download = typstDownload(data, null, bibliography);
+		expect(download.filename).toBe('cv.typ');
+		expect(download.source).toContain('#bibliography(');
+		expect(generateTypstTemplate(data)).not.toContain('#bibliography(');
+	});
+});
+
+describe('presentations section', () => {
+	const talk: Presentation = {
+		id: 't',
+		title: 'Example Talk',
+		event: 'Example Conference',
+		location: 'Example City',
+		date: '2023-10',
+		kind: 'invited',
+		url: '',
+	};
+
+	it('renders event, location, kind, and date', () => {
+		expect(contentOf(withOverrides({ presentations: [talk] }))).toContain(
+			'= Presentations\n#achievement-heading("Example Talk", "Oct 2023")[\n_Example Conference_, Example City. Invited talk]',
+		);
+	});
+
+	it('omits untitled talks and unsafe links, and escapes every field', () => {
+		expect(contentOf(withOverrides({ presentations: [{ ...talk, title: ' ' }] }))).not.toContain('= Presentations');
+		const content = contentOf(
+			withOverrides({
+				presentations: [{ ...talk, title: 'T") #x', event: '_E_]', location: '#L', url: 'javascript:alert(1)' }],
+			}),
+		);
+		expect(content).toContain('#achievement-heading("T\\") #x", "Oct 2023")[\n_\\_E\\_\\]_, \\#L. Invited talk]');
+		expect(content).not.toContain('javascript');
 	});
 });
 
@@ -316,5 +444,93 @@ describe('typst download payload', () => {
 			expect(template).not.toContain(value);
 		}
 		expect(template).toBe(generateTypstTemplate(structuredClone({ ...defaultResumeData, colors: data.colors })));
+	});
+});
+
+describe('academic CV template', () => {
+	const cv = (): ResumeData => withOverrides({ documentType: 'cv' });
+
+	it('numbers pages and adds a running header only for a CV', () => {
+		const cvCode = generateTypstCode(cv());
+		expect(cvCode).toContain('Page #counter(page).display() of #counter(page).final().first()');
+		expect(cvCode).toContain('[Curriculum Vitae]');
+		expect(cvCode).toContain('title: "Curriculum Vitae | " + author-name');
+		const resumeCode = generateTypstCode(withOverrides({}));
+		expect(resumeCode).not.toContain('counter(page)');
+		expect(resumeCode).toContain('title: "Resume | " + author-name');
+		expect(resumeCode).toContain('top-margin: 0.15in');
+	});
+
+	it('uses the same content helpers, so section content is identical in both documents', () => {
+		const data = cv();
+		data.profile.summary = 'Synthetic *summary*.';
+		expect(contentOf(data)).toBe(contentOf({ ...data, documentType: 'resume' }));
+	});
+
+	it('keeps the CV layout in the content-free template and names downloads after the document', () => {
+		const data = cv();
+		expect(generateTypstTemplate(data)).toContain('[Curriculum Vitae]');
+		expect(typstDownload(data).filename).toBe('cv-template.typ');
+		data.profile.summary = 'Synthetic summary.';
+		expect(typstDownload(data).filename).toBe('cv.typ');
+	});
+});
+
+describe('custom sections', () => {
+	const grants = (overrides: Partial<ResumeData['customSections'][number]> = {}): ResumeData =>
+		withOverrides({
+			customSections: [
+				{
+					id: 'g',
+					heading: 'Grants',
+					entries: [
+						{ id: 'e1', title: 'Example Grant', date: '2021 - 2024', bullets: ['Principal investigator.', ' '] },
+					],
+					...overrides,
+				},
+			],
+			sectionOrder: ['custom:g', ...defaultResumeData.sectionOrder],
+		});
+
+	it('renders a heading and entries with dates and bullets through an existing helper', () => {
+		const content = contentOf(grants());
+		expect(content).toContain(
+			'= Grants\n#achievement-heading("Example Grant", "2021 - 2024")[\n  - Principal investigator.]',
+		);
+	});
+
+	it('follows the section order', () => {
+		const data = grants();
+		data.profile.summary = 'Synthetic summary.';
+		const content = contentOf(data);
+		expect(content.indexOf('= Grants')).toBeLessThan(content.indexOf('= Profile'));
+		data.sectionOrder = [...defaultResumeData.sectionOrder, 'custom:g'];
+		const reordered = contentOf(data);
+		expect(reordered.indexOf('= Grants')).toBeGreaterThan(reordered.indexOf('= Profile'));
+	});
+
+	it('omits a section without a heading or without titled entries', () => {
+		expect(contentOf(grants({ heading: '  ' }))).not.toContain('achievement-heading');
+		const untitled = grants({ entries: [{ id: 'e', title: ' ', date: '', bullets: ['orphan'] }] });
+		expect(contentOf(untitled)).not.toContain('Grants');
+		expect(hasResumeContent(untitled)).toBe(false);
+	});
+
+	it('escapes the heading, title, date, and bullets', () => {
+		const content = contentOf(
+			grants({
+				heading: '= Talks #eval("x")',
+				entries: [{ id: 'e', title: 'A "quoted" \\ title', date: '2020") #eval("x', bullets: ['close] #eval("1")'] }],
+			}),
+		);
+		expect(content).toContain('= \\= Talks \\#eval(\\"x\\")');
+		expect(content).toContain('#achievement-heading("A \\"quoted\\" \\\\ title", "2020\\") #eval(\\"x")');
+		expect(content).toContain('  - close\\] \\#eval(\\"1\\")]');
+	});
+
+	it('ignores an order entry whose custom section no longer exists', () => {
+		const data = withOverrides({ sectionOrder: ['custom:missing', ...defaultResumeData.sectionOrder] });
+		expect(() => generateTypstCode(data)).not.toThrow();
+		expect(hasResumeContent(data)).toBe(false);
 	});
 });

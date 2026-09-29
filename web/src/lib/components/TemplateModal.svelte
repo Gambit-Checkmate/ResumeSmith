@@ -2,7 +2,7 @@
 	import { tick } from 'svelte';
 	import { generateTypstTemplate, RESUME_CONTENT_MARKER } from '$lib/typst-generator';
 	import {
-		customTemplateStore,
+		customTemplateStores,
 		MAX_TEMPLATE_SIZE,
 		validateTemplateCompatibility,
 		type CustomTemplate,
@@ -30,6 +30,8 @@
 	let fileInput = $state<HTMLInputElement>();
 	let dialog = $state<HTMLDivElement>();
 	let isBusy = $derived(status === 'converting' || status === 'validating');
+	let documentType = $derived(data.documentType);
+	let documentName = $derived(documentType === 'cv' ? 'CV' : 'resume');
 
 	$effect(() => {
 		if (!open) return;
@@ -97,11 +99,11 @@
 			}
 
 			status = 'validating';
-			const contractError = await validateTemplateCompatibility(template.source);
+			const contractError = await validateTemplateCompatibility(template.source, documentType);
 			if (contractError) throw new Error(contractError);
 
 			// Nothing is cached until a fully populated fixture has exercised every helper.
-			customTemplateStore.save(template);
+			customTemplateStores[documentType].save(template);
 			status = 'idle';
 			close();
 		} catch (error) {
@@ -124,13 +126,13 @@
 	}
 
 	function useDefaultTemplate() {
-		customTemplateStore.clear();
+		customTemplateStores[documentType].clear();
 		close();
 	}
 
 	function downloadStarterTemplate() {
 		const blob = new Blob([generateTypstTemplate(data)], { type: 'text/plain;charset=utf-8' });
-		downloadBlob(blob, 'resume-template.typ');
+		downloadBlob(blob, `${documentType === 'cv' ? 'cv' : 'resume'}-template.typ`);
 	}
 
 	function onDialogKeydown(event: KeyboardEvent) {
@@ -182,7 +184,9 @@
 			onkeydown={onDialogKeydown}
 		>
 			<div class="flex items-center justify-between gap-3">
-				<h2 id="template-dialog-title" class="text-lg font-semibold">Resume template</h2>
+				<h2 id="template-dialog-title" class="text-lg font-semibold">
+					{documentType === 'cv' ? 'CV template' : 'Resume template'}
+				</h2>
 				<button class="secondary px-2 py-1 text-sm" onclick={close} disabled={isBusy}>Close</button>
 			</div>
 
@@ -259,7 +263,7 @@
 				<div class="mt-2 space-y-2 rounded-md border border-gray-200 p-3">
 					<p>Start from the starter file. Keep its helper functions and this line:</p>
 					<code class="block overflow-x-auto rounded bg-gray-100 px-2 py-1 text-xs">{RESUME_CONTENT_MARKER}</code>
-					<p class="text-xs text-gray-500">Everything below that line is replaced with your resume.</p>
+					<p class="text-xs text-gray-500">Everything below that line is replaced with your {documentName}.</p>
 					<button class="secondary text-xs" type="button" onclick={downloadStarterTemplate}
 						>Download starter file</button
 					>

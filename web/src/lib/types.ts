@@ -62,6 +62,8 @@ export interface Achievement {
 	description: string;
 }
 
+export type PublicationStatus = 'published' | 'in press' | 'under review';
+
 export interface Publication {
 	id: string;
 	title: string;
@@ -69,6 +71,40 @@ export interface Publication {
 	venue: string;
 	date: string;
 	url: string;
+	volume: string;
+	issue: string;
+	pages: string;
+	doi: string;
+	status: PublicationStatus;
+}
+
+export type PresentationKind = 'invited' | 'contributed' | 'poster';
+
+export interface Presentation {
+	id: string;
+	title: string;
+	event: string;
+	location: string;
+	date: string;
+	kind: PresentationKind;
+	url: string;
+}
+
+// Resume extraction predates the typed citation fields and still returns only these.
+export type ResumePublication = Pick<Publication, 'title' | 'authors' | 'venue' | 'date' | 'url'>;
+
+// A user-named section (grants, teaching, service, ...) built from freeform entries.
+export interface CustomSectionEntry {
+	id: string;
+	title: string;
+	date: string; // Freeform, e.g. "2019 - 2022" or "Fall 2023".
+	bullets: string[];
+}
+
+export interface CustomSection {
+	id: string;
+	heading: string;
+	entries: CustomSectionEntry[];
 }
 
 export type ClearanceLevel = 'Confidential' | 'Secret' | 'Top Secret' | 'Top Secret/SCI' | 'Public Trust';
@@ -108,6 +144,23 @@ export const defaultFontSettings: FontSettings = {
 	contactSize: 11.2,
 };
 
+// Academic CVs run several pages, so they start from a more readable size than the dense one-page resume.
+export const cvFontSettings: FontSettings = {
+	baseSize: 10.5,
+	nameSize: 20.7,
+	headingSize: 14,
+	contactSize: 10,
+};
+
+export type DocumentType = 'resume' | 'cv';
+
+export const documentTypes: DocumentType[] = ['resume', 'cv'];
+
+export const documentTypeLabels: Record<DocumentType, string> = {
+	resume: 'Resume',
+	cv: 'Academic CV',
+};
+
 export interface FontFamilies {
 	heading: string;
 	body: string;
@@ -127,7 +180,8 @@ export type SectionId =
 	| 'leadership'
 	| 'skills'
 	| 'achievements'
-	| 'publications';
+	| 'publications'
+	| 'presentations';
 
 export const defaultSectionOrder: SectionId[] = [
 	'profile',
@@ -139,7 +193,18 @@ export const defaultSectionOrder: SectionId[] = [
 	'skills',
 	'achievements',
 	'publications',
+	'presentations',
 ];
+
+// Custom sections join the section order as `custom:<section id>`.
+export type CustomSectionKey = `custom:${string}`;
+export type SectionKey = SectionId | CustomSectionKey;
+
+export const CUSTOM_SECTION_PREFIX = 'custom:';
+
+export function customSectionKey(id: string): CustomSectionKey {
+	return `${CUSTOM_SECTION_PREFIX}${id}`;
+}
 
 export const sectionLabels: Record<SectionId, string> = {
 	profile: 'Profile',
@@ -151,9 +216,11 @@ export const sectionLabels: Record<SectionId, string> = {
 	skills: 'Skills',
 	achievements: 'Achievements',
 	publications: 'Publications',
+	presentations: 'Presentations',
 };
 
 export interface ResumeData {
+	documentType: DocumentType;
 	personalInfo: PersonalInfo;
 	profile: Profile;
 	clearance: Clearance[];
@@ -164,13 +231,25 @@ export interface ResumeData {
 	skills: SkillCategory[];
 	achievements: Achievement[];
 	publications: Publication[];
+	// The owner's name as it appears in author lists, bolded in citations.
+	publicationAuthorName: string;
+	presentations: Presentation[];
+	customSections: CustomSection[];
 	colors: ColorSettings;
 	fonts: FontSettings;
 	fontFamilies: FontFamilies;
-	sectionOrder: SectionId[];
+	sectionOrder: SectionKey[];
+}
+
+/** The display name of a built-in or custom section. */
+export function sectionLabel(key: SectionKey, customSections: CustomSection[]): string {
+	if (!key.startsWith(CUSTOM_SECTION_PREFIX)) return sectionLabels[key as SectionId];
+	const section = customSections.find((candidate) => customSectionKey(candidate.id) === key);
+	return section?.heading.trim() || 'Untitled section';
 }
 
 export const defaultResumeData: ResumeData = {
+	documentType: 'resume',
 	personalInfo: {
 		name: '',
 		phone: '',
@@ -191,6 +270,9 @@ export const defaultResumeData: ResumeData = {
 	skills: [],
 	achievements: [],
 	publications: [],
+	publicationAuthorName: '',
+	presentations: [],
+	customSections: [],
 	colors: {
 		headColor: '#22227f',
 		textColor: '#1b1b1b',
@@ -212,6 +294,6 @@ export interface ExtractedResume {
 	leadership: Omit<Leadership, 'id'>[];
 	skills: Omit<SkillCategory, 'id'>[];
 	achievements: Omit<Achievement, 'id'>[];
-	publications: Omit<Publication, 'id'>[];
+	publications: ResumePublication[];
 	clearance: Omit<Clearance, 'id'>[];
 }

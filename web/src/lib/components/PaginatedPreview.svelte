@@ -1,9 +1,14 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import type { CompiledPreview } from '$lib/pdf-compiler';
 
-	let { preview }: { preview: CompiledPreview } = $props();
+	// The page is bindable because the preview remounts on every recompile; the parent keeps the reader's place.
+	let {
+		preview,
+		documentLabel,
+		pageIndex = $bindable(0),
+	}: { preview: CompiledPreview; documentLabel: string; pageIndex?: number } = $props();
 	let pageSvgs = $state<string[]>([]);
-	let pageIndex = $state(0);
 
 	function splitPages({ svg, pages }: CompiledPreview): string[] {
 		if (typeof DOMParser === 'undefined' || typeof XMLSerializer === 'undefined') return [];
@@ -47,15 +52,17 @@
 	}
 
 	$effect(() => {
-		pageSvgs = splitPages(preview);
-		pageIndex = 0;
+		const pages = splitPages(preview);
+		pageSvgs = pages;
+		const lastPage = Math.max(pages.length - 1, 0);
+		if (untrack(() => pageIndex) > lastPage) pageIndex = lastPage;
 	});
 </script>
 
 {#if pageSvgs.length > 0 && pageSvgs.length === preview.pages.length}
 	<div
 		class="flex h-full min-h-0 w-full flex-col items-center gap-3"
-		aria-label={`${pageSvgs.length}-page resume preview`}
+		aria-label={`${pageSvgs.length}-page ${documentLabel} preview`}
 	>
 		{#if pageSvgs.length > 1}
 			<nav class="flex w-full max-w-[510px] items-center justify-between gap-3" aria-label="Preview pages">
@@ -78,7 +85,7 @@
 		{/if}
 		<figure
 			class="m-0 grid min-h-0 w-full flex-1 place-items-center overflow-hidden"
-			aria-label={`Resume page ${pageIndex + 1}`}
+			aria-label={`${documentLabel} page ${pageIndex + 1}`}
 		>
 			<div class="resume-page h-full w-full overflow-hidden">
 				{@html pageSvgs[pageIndex]}

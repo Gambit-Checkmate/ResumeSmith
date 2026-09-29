@@ -61,10 +61,10 @@ package-manager migration.
 - Resume uploads must pass browser preflight, show extracted-text metrics and a preview, and require explicit consent
   before extracted text is sent to `/api/extract`. The server independently enforces quality and size limits. Original
   resume files stay in the browser.
-- Custom templates are session-scoped, take precedence over the built-in template, and must compile against the complete
-  helper contract before activation.
-- Resume data and the selected O\*NET occupation may use `localStorage`; custom templates use `sessionStorage`. Do not
-  describe either as server-side persistence.
+- Custom templates are session-scoped, scoped per document type (resume or CV), take precedence over the built-in
+  template, and must compile against the complete helper contract before activation.
+- Resume data, the selected O\*NET occupation, and the optional CV BibTeX file may use `localStorage`; custom templates
+  use `sessionStorage`. Do not describe any of them as server-side persistence.
 - Keep upload limits, environment-variable descriptions, and privacy claims in sync across code, tests, `.env.example`,
   and the root README.
 

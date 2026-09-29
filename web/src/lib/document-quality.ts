@@ -1,5 +1,8 @@
 export const MAX_DOCUMENT_BYTES = 5 * 1024 * 1024;
 export const MAX_EXTRACTED_TEXT_CHARS = 120_000;
+export const MAX_PDF_PAGES = 10;
+// Academic CVs run longer; the text limit above still bounds what is sent.
+export const MAX_CV_PDF_PAGES = 30;
 export const SUPPORTED_DOCUMENT_EXTENSIONS = ['pdf', 'docx', 'txt'] as const;
 
 export type ExtractionMethod = 'text' | 'ocr' | 'hybrid';

@@ -12,11 +12,12 @@
 		setDocumentFonts,
 		type CompiledPreview,
 	} from '$lib/pdf-compiler';
-	import type { ResumeData } from '$lib/types';
+	import type { DocumentType, ResumeData } from '$lib/types';
 	import { defaultResumeData } from '$lib/types';
-	import { estimateOverOnePage } from '$lib/resume-utils';
-	import { customTemplateStore, type CustomTemplate } from '$lib/template-store';
+	import { estimateOverOnePage, withDocumentType } from '$lib/resume-utils';
+	import { customTemplateStores, type CustomTemplate } from '$lib/template-store';
 	import { createPreviewScheduler } from '$lib/preview-scheduler';
+	import { bibliographyStore } from '$lib/bibliography-store';
 
 	import AppHeader from '$lib/components/AppHeader.svelte';
 	import UploadModal from '$lib/components/UploadModal.svelte';
@@ -35,6 +36,8 @@
 	import SkillsForm from '$lib/components/forms/SkillsForm.svelte';
 	import AchievementsForm from '$lib/components/forms/AchievementsForm.svelte';
 	import PublicationsForm from '$lib/components/forms/PublicationsForm.svelte';
+	import PresentationsForm from '$lib/components/forms/PresentationsForm.svelte';
+	import CustomSectionsForm from '$lib/components/forms/CustomSectionsForm.svelte';
 	import LayoutForm from '$lib/components/forms/LayoutForm.svelte';
 	import FontsForm from '$lib/components/forms/FontsForm.svelte';
 	import ColorsForm from '$lib/components/forms/ColorsForm.svelte';
@@ -44,15 +47,18 @@
 	let showCode = $state(false);
 	let isCompiling = $state(false);
 	let compileError = $state<string | null>(null);
-	let customTemplate = $state<CustomTemplate | null>(null);
-	let typstCode = $derived(generateTypstCode(data, customTemplate?.source));
+	let customTemplates = $state<Record<DocumentType, CustomTemplate | null>>({ resume: null, cv: null });
+	let customTemplate = $derived(customTemplates[data.documentType]);
+	// The bibliography lives in its own store and only ever renders in a CV.
+	let bibliography = $derived(data.documentType === 'cv' ? $bibliographyStore : null);
+	let typstCode = $derived(generateTypstCode(data, customTemplate?.source, bibliography));
 	let preview = $state<CompiledPreview | null>(null);
 	let isPreviewLoading = $state(false);
 	let uploadOpen = $state(false);
 	let templateOpen = $state(false);
 	let tailorOpen = $state(false);
 	let showReviewBanner = $state(false);
-	let estimatedOverOnePage = $derived(estimateOverOnePage(data));
+	let estimatedOverOnePage = $derived(data.documentType === 'resume' && estimateOverOnePage(data));
 	let compiledPageCount = $derived(preview?.pages.length ?? null);
 
 	const previewScheduler = createPreviewScheduler(compileToPreview, {
@@ -74,18 +80,22 @@
 	onMount(() => {
 		resumeStore.loadFromStorage();
 		onetStore.loadFromStorage();
-		customTemplateStore.loadFromStorage();
+		customTemplateStores.resume.loadFromStorage();
+		customTemplateStores.cv.loadFromStorage();
+		bibliographyStore.loadFromStorage();
 		const unsub = resumeStore.subscribe((val) => {
 			data = val;
 		});
-		const unsubTemplate = customTemplateStore.subscribe((value) => {
-			customTemplate = value;
-		});
+		const unsubTemplates = (['resume', 'cv'] as const).map((documentType) =>
+			customTemplateStores[documentType].subscribe((value) => {
+				customTemplates[documentType] = value;
+			}),
+		);
 		initCompiler().catch(console.error);
 		return () => {
 			previewScheduler.dispose();
 			unsub();
-			unsubTemplate();
+			unsubTemplates.forEach((unsubscribe) => unsubscribe());
 		};
 	});
 
@@ -109,7 +119,7 @@
 	}
 
 	function downloadTypstFile() {
-		const { source, filename } = typstDownload(data, customTemplate?.source);
+		const { source, filename } = typstDownload(data, customTemplate?.source, bibliography);
 		downloadBlob(new Blob([source], { type: 'text/plain;charset=utf-8' }), filename);
 	}
 
@@ -124,6 +134,8 @@
 		{ id: 'skills', label: 'Skills' },
 		{ id: 'achievements', label: 'Achievements' },
 		{ id: 'publications', label: 'Publications' },
+		{ id: 'presentations', label: 'Presentations' },
+		{ id: 'custom', label: 'Custom' },
 		{ id: 'layout', label: 'Layout' },
 		{ id: 'fonts', label: 'Fonts' },
 		{ id: 'colors', label: 'Colors' },
@@ -138,6 +150,12 @@
 -->
 <div class="min-h-screen lg:h-screen lg:overflow-hidden bg-gray-100 flex flex-col">
 	<AppHeader
+		documentType={data.documentType}
+		onDocumentTypeChange={(documentType) => {
+			// Occupational tailoring does not apply to academic CVs.
+			if (documentType === 'cv') tailorOpen = false;
+			data = withDocumentType(data, documentType);
+		}}
 		bind:showCode
 		{isCompiling}
 		{compileError}
@@ -151,12 +169,14 @@
 		hasCustomTemplate={customTemplate !== null}
 	/>
 
-	<OnetDrawer
-		bind:open={tailorOpen}
-		bind:data
-		pageCount={compiledPageCount}
-		onInserted={() => (showReviewBanner = true)}
-	/>
+	{#if data.documentType === 'resume'}
+		<OnetDrawer
+			bind:open={tailorOpen}
+			bind:data
+			pageCount={compiledPageCount}
+			onInserted={() => (showReviewBanner = true)}
+		/>
+	{/if}
 
 	<main class="w-full max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 lg:flex-1 lg:min-h-0">
 		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:h-full lg:min-h-0">
@@ -192,6 +212,10 @@
 					<AchievementsForm {data} />
 				{:else if activeTab === 'publications'}
 					<PublicationsForm {data} />
+				{:else if activeTab === 'presentations'}
+					<PresentationsForm {data} />
+				{:else if activeTab === 'custom'}
+					<CustomSectionsForm {data} />
 				{:else if activeTab === 'layout'}
 					<LayoutForm {data} />
 				{:else if activeTab === 'fonts'}
@@ -202,11 +226,17 @@
 			</div>
 
 			<!-- Preview Panel -->
-			<PreviewPanel {showCode} {typstCode} {preview} {isPreviewLoading} />
+			<PreviewPanel
+				{showCode}
+				{typstCode}
+				{preview}
+				{isPreviewLoading}
+				documentLabel={data.documentType === 'cv' ? 'CV' : 'Resume'}
+			/>
 		</div>
 	</main>
 
 	<AppFooter />
-	<UploadModal bind:open={uploadOpen} onApplied={() => (showReviewBanner = true)} />
+	<UploadModal bind:open={uploadOpen} documentType={data.documentType} onApplied={() => (showReviewBanner = true)} />
 	<TemplateModal bind:open={templateOpen} {data} currentTemplate={customTemplate} />
 </div>

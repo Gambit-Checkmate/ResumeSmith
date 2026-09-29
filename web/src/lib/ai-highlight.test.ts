@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { aiFilled, setHighlightsFromData, clearHighlight, resetHighlights } from './ai-highlight';
+import { defaultResumeData } from './types';
 import { buildResumeFromExtraction } from './resume-utils';
 import type { ExtractedResume } from './types';
 
@@ -83,5 +84,21 @@ describe('setHighlightsFromData', () => {
 		setHighlightsFromData(buildResumeFromExtraction(sample));
 		resetHighlights();
 		expect(aiFilled.size).toBe(0);
+	});
+});
+
+describe('custom section highlights', () => {
+	it('marks the heading, entry fields, and bullets using the form paths', () => {
+		setHighlightsFromData({
+			...structuredClone(defaultResumeData),
+			customSections: [
+				{ id: 's', heading: 'Grants', entries: [{ id: 'e', title: 'Grant', date: '', bullets: ['', 'Detail'] }] },
+			],
+		});
+		expect(aiFilled.has('customSections.0.heading')).toBe(true);
+		expect(aiFilled.has('customSections.0.entries.0.title')).toBe(true);
+		expect(aiFilled.has('customSections.0.entries.0.date')).toBe(false);
+		expect(aiFilled.has('customSections.0.entries.0.bullets.1')).toBe(true);
+		expect(aiFilled.has('customSections.0.entries.0.bullets.0')).toBe(false);
 	});
 });

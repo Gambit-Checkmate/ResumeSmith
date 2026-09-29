@@ -1,5 +1,9 @@
 <script lang="ts">
+	import { documentTypes, documentTypeLabels, type DocumentType } from '$lib/types';
+
 	let {
+		documentType,
+		onDocumentTypeChange,
 		showCode = $bindable(),
 		isCompiling,
 		compileError,
@@ -12,6 +16,8 @@
 		onTailor,
 		hasCustomTemplate,
 	}: {
+		documentType: DocumentType;
+		onDocumentTypeChange: (documentType: DocumentType) => void;
 		showCode: boolean;
 		isCompiling: boolean;
 		compileError: string | null;
@@ -29,14 +35,30 @@
 <header class="bg-white shadow-sm">
 	<div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
 		<div class="flex items-center justify-between flex-wrap gap-2">
-			<h1 class="text-2xl font-bold text-gray-900">ResumeSmith</h1>
+			<div class="flex items-center gap-4">
+				<h1 class="text-2xl font-bold text-gray-900">ResumeSmith</h1>
+				<div class="flex rounded-md bg-gray-200 p-0.5" role="group" aria-label="Document type">
+					{#each documentTypes as type}
+						<button
+							class="px-3 py-1 text-sm {documentType === type
+								? 'bg-white text-gray-900 shadow-sm'
+								: 'text-gray-600 hover:text-gray-900'}"
+							aria-pressed={documentType === type}
+							onclick={() => onDocumentTypeChange(type)}>{documentTypeLabels[type]}</button
+						>
+					{/each}
+				</div>
+			</div>
 			<div class="flex gap-2">
-				<button class="secondary" onclick={onUpload} title="Fill the form from an existing resume">Import resume</button
+				<button class="secondary" onclick={onUpload} title="Fill the form from an existing resume or CV"
+					>{documentType === 'cv' ? 'Import CV' : 'Import resume'}</button
 				>
 				<button class="secondary" onclick={onTemplate} title="Change the resume layout">
 					{hasCustomTemplate ? 'Template: custom' : 'Template'}
 				</button>
-				<button class="secondary" onclick={onTailor} title="Match your resume to a job">Tailor to job</button>
+				{#if documentType === 'resume'}
+					<button class="secondary" onclick={onTailor} title="Match your resume to a job">Tailor to job</button>
+				{/if}
 				<button class="secondary" onclick={() => (showCode = !showCode)}>
 					{showCode ? 'Show preview' : 'Show code'}
 				</button>
@@ -54,7 +76,14 @@
 		{#if compileError}
 			<div class="mt-2 text-red-600 text-sm">{compileError}</div>
 		{/if}
-		{#if compiledPageCount !== null && compiledPageCount > 1}
+		{#if documentType === 'cv'}
+			{#if compiledPageCount !== null}
+				<p class="mt-2 text-sm text-gray-600" aria-live="polite">
+					Your CV is {compiledPageCount}
+					{compiledPageCount === 1 ? 'page' : 'pages'}.
+				</p>
+			{/if}
+		{:else if compiledPageCount !== null && compiledPageCount > 1}
 			<div class="mt-2 px-3 py-2 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded text-sm">
 				Your resume is {compiledPageCount} pages.
 			</div>

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { buildResumeFromExtraction, estimateOverOnePage, toSingleLine } from './resume-utils';
-import { defaultResumeData } from './types';
+import { buildResumeFromExtraction, estimateOverOnePage, toSingleLine, withDocumentType } from './resume-utils';
+import { cvFontSettings, defaultFontSettings, defaultResumeData } from './types';
 import type { ExtractedResume, ResumeData } from './types';
 
 const sample: ExtractedResume = {
@@ -54,5 +54,28 @@ describe('toSingleLine', () => {
 
 	it('leaves single-line text unchanged', () => {
 		expect(toSingleLine('Shipped v2')).toBe('Shipped v2');
+	});
+});
+
+describe('withDocumentType', () => {
+	it('moves default resume font sizes to the CV defaults and back', () => {
+		const cv = withDocumentType(structuredClone(defaultResumeData), 'cv');
+		expect(cv.documentType).toBe('cv');
+		expect(cv.fonts).toEqual(cvFontSettings);
+		const resume = withDocumentType(cv, 'resume');
+		expect(resume.documentType).toBe('resume');
+		expect(resume.fonts).toEqual(defaultFontSettings);
+	});
+
+	it('keeps font sizes the user changed', () => {
+		const data = { ...structuredClone(defaultResumeData), fonts: { ...defaultFontSettings, baseSize: 9.5 } };
+		expect(withDocumentType(data, 'cv').fonts).toEqual(data.fonts);
+	});
+
+	it('keeps content and returns the same object when the type does not change', () => {
+		const data = structuredClone(defaultResumeData);
+		data.personalInfo.name = 'Ada';
+		expect(withDocumentType(data, 'resume')).toBe(data);
+		expect(withDocumentType(data, 'cv').personalInfo.name).toBe('Ada');
 	});
 });

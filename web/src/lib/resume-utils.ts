@@ -1,5 +1,21 @@
-import type { ResumeData, ExtractedResume } from './types';
-import { defaultResumeData, defaultFontSettings, defaultSectionOrder } from './types';
+import type { ResumeData, ExtractedResume, DocumentType, FontSettings } from './types';
+import { defaultResumeData, defaultFontSettings, defaultSectionOrder, cvFontSettings } from './types';
+
+const documentFontDefaults: Record<DocumentType, FontSettings> = { resume: defaultFontSettings, cv: cvFontSettings };
+
+/** Switches document type, moving untouched font sizes to the new type's defaults but keeping any the user chose. */
+export function withDocumentType(data: ResumeData, documentType: DocumentType): ResumeData {
+	if (data.documentType === documentType) return data;
+	const previousDefaults = documentFontDefaults[data.documentType];
+	const untouched = (Object.keys(previousDefaults) as (keyof FontSettings)[]).every(
+		(key) => data.fonts[key] === previousDefaults[key],
+	);
+	return {
+		...data,
+		documentType,
+		fonts: untouched ? { ...documentFontDefaults[documentType] } : data.fonts,
+	};
+}
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -42,6 +58,7 @@ export function buildResumeFromExtraction(ex: ExtractedResume): ResumeData {
 	const withId = <T>(items: T[]): (T & { id: string })[] => items.map((item) => ({ ...item, id: generateId() }));
 
 	return {
+		documentType: 'resume',
 		personalInfo: { ...defaultResumeData.personalInfo, ...ex.personalInfo },
 		profile: { summary: ex.profile?.summary ?? '' },
 		education: withId(ex.education ?? []),
@@ -50,7 +67,17 @@ export function buildResumeFromExtraction(ex: ExtractedResume): ResumeData {
 		leadership: withId(ex.leadership ?? []),
 		skills: withId(ex.skills ?? []),
 		achievements: withId(ex.achievements ?? []),
-		publications: withId(ex.publications ?? []),
+		publications: withId(ex.publications ?? []).map((publication) => ({
+			...publication,
+			volume: '',
+			issue: '',
+			pages: '',
+			doi: '',
+			status: 'published' as const,
+		})),
+		publicationAuthorName: '',
+		presentations: [],
+		customSections: [],
 		clearance: withId(ex.clearance ?? []),
 		colors: { ...defaultResumeData.colors },
 		fonts: { ...defaultFontSettings },
