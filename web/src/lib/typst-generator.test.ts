@@ -156,6 +156,31 @@ describe('typed publication fields', () => {
 	});
 });
 
+describe('CV bibliography', () => {
+	const bibliography = { name: 'refs.bib', source: '@misc{a, title={T}}', style: 'ieee' as const };
+
+	it('renders the bibliography after typed references in a CV only', () => {
+		const data = withOverrides({ documentType: 'cv' });
+		const content = contentOf({ ...data });
+		expect(content).not.toContain('bibliography(');
+		const withBib = generateTypstCode(data, null, bibliography);
+		expect(withBib).toContain(
+			'= Publications\n#bibliography(bytes("@misc{a, title={T}}"), title: none, full: true, style: "ieee")',
+		);
+		expect(generateTypstCode(withOverrides({}), null, bibliography)).not.toContain('bibliography(');
+	});
+
+	it('counts a bibliography as CV content but keeps it out of the template', () => {
+		const data = withOverrides({ documentType: 'cv' });
+		expect(hasResumeContent(data)).toBe(false);
+		expect(hasResumeContent(data, bibliography)).toBe(true);
+		const download = typstDownload(data, null, bibliography);
+		expect(download.filename).toBe('cv.typ');
+		expect(download.source).toContain('#bibliography(');
+		expect(generateTypstTemplate(data)).not.toContain('#bibliography(');
+	});
+});
+
 describe('presentations section', () => {
 	const talk: Presentation = {
 		id: 't',

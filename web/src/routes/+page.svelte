@@ -17,6 +17,7 @@
 	import { estimateOverOnePage, withDocumentType } from '$lib/resume-utils';
 	import { customTemplateStores, type CustomTemplate } from '$lib/template-store';
 	import { createPreviewScheduler } from '$lib/preview-scheduler';
+	import { bibliographyStore } from '$lib/bibliography-store';
 
 	import AppHeader from '$lib/components/AppHeader.svelte';
 	import UploadModal from '$lib/components/UploadModal.svelte';
@@ -48,7 +49,9 @@
 	let compileError = $state<string | null>(null);
 	let customTemplates = $state<Record<DocumentType, CustomTemplate | null>>({ resume: null, cv: null });
 	let customTemplate = $derived(customTemplates[data.documentType]);
-	let typstCode = $derived(generateTypstCode(data, customTemplate?.source));
+	// The bibliography lives in its own store and only ever renders in a CV.
+	let bibliography = $derived(data.documentType === 'cv' ? $bibliographyStore : null);
+	let typstCode = $derived(generateTypstCode(data, customTemplate?.source, bibliography));
 	let preview = $state<CompiledPreview | null>(null);
 	let isPreviewLoading = $state(false);
 	let uploadOpen = $state(false);
@@ -79,6 +82,7 @@
 		onetStore.loadFromStorage();
 		customTemplateStores.resume.loadFromStorage();
 		customTemplateStores.cv.loadFromStorage();
+		bibliographyStore.loadFromStorage();
 		const unsub = resumeStore.subscribe((val) => {
 			data = val;
 		});
@@ -115,7 +119,7 @@
 	}
 
 	function downloadTypstFile() {
-		const { source, filename } = typstDownload(data, customTemplate?.source);
+		const { source, filename } = typstDownload(data, customTemplate?.source, bibliography);
 		downloadBlob(new Blob([source], { type: 'text/plain;charset=utf-8' }), filename);
 	}
 

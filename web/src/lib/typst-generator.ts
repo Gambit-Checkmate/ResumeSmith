@@ -26,6 +26,7 @@ import {
 	venueMarkup,
 } from './publication';
 import { isPresentationKind, presentationKindLabels } from './presentation';
+import { bibliographyMarkup, type Bibliography } from './bibliography';
 
 export const RESUME_CONTENT_MARKER = '// ========== RESUME CONTENT ==========';
 
@@ -196,17 +197,19 @@ function generateResumePublications(publications: Publication[], ownerName: stri
 ${items}`;
 }
 
-// A CV lists full references; plain numbered-list markup needs no template helper.
-function generateCvPublications(publications: Publication[], ownerName: string): string {
-	const items = publications
-		.filter((p) => p.title.trim())
-		.map((p) => `+ ${citationMarkup(p, ownerName)}`)
-		.join('\n');
+// A CV lists full references; plain numbered-list markup and Typst's bibliography need no template helper.
+function generateCvPublications(
+	publications: Publication[],
+	ownerName: string,
+	bibliography: Bibliography | null,
+): string {
+	const items = publications.filter((p) => p.title.trim()).map((p) => `+ ${citationMarkup(p, ownerName)}`);
+	if (bibliography) items.push(bibliographyMarkup(bibliography));
 
-	if (!items) return '';
+	if (items.length === 0) return '';
 
 	return `= Publications
-${items}`;
+${items.join('\n')}`;
 }
 
 function generatePresentations(presentations: Presentation[]): string {
@@ -401,8 +404,15 @@ ${cv ? CV_SPACING : ''}
 }`;
 }
 
-/** Combines sanitized resume content with a compatible custom template or the built-in default. */
-export function generateTypstCode(data: ResumeData, customTemplate?: string | null): string {
+/**
+ * Combines sanitized resume content with a compatible custom template or the built-in default. A
+ * bibliography is only rendered in a CV.
+ */
+export function generateTypstCode(
+	data: ResumeData,
+	customTemplate?: string | null,
+	bibliography: Bibliography | null = null,
+): string {
 	const {
 		documentType,
 		personalInfo,
@@ -442,7 +452,7 @@ export function generateTypstCode(data: ResumeData, customTemplate?: string | nu
 		achievements: generateAchievements(achievements),
 		publications:
 			documentType === 'cv'
-				? generateCvPublications(publications, publicationAuthorName)
+				? generateCvPublications(publications, publicationAuthorName, bibliography)
 				: generateResumePublications(publications, publicationAuthorName),
 		presentations: generatePresentations(presentations),
 	};
@@ -623,19 +633,23 @@ export function generateTypstTemplate(data: ResumeData, customTemplate?: string 
 	return generateTypstCode(withoutResumeContent(data), customTemplate);
 }
 
-/** True when any resume content would appear in the generated Typst source. */
-export function hasResumeContent(data: ResumeData): boolean {
-	return generateTypstCode(data) !== generateTypstTemplate(data);
+/** True when any resume content, including a CV bibliography, would appear in the generated Typst source. */
+export function hasResumeContent(data: ResumeData, bibliography: Bibliography | null = null): boolean {
+	return generateTypstCode(data, null, bibliography) !== generateTypstTemplate(data);
 }
 
 /** Picks the Typst download payload: the full resume, or the content-free template when there is nothing to export. */
-export function typstDownload(data: ResumeData, customTemplate?: string | null): { source: string; filename: string } {
+export function typstDownload(
+	data: ResumeData,
+	customTemplate?: string | null,
+	bibliography: Bibliography | null = null,
+): { source: string; filename: string } {
 	const fallbackName = data.documentType === 'cv' ? 'cv' : 'resume';
-	if (!hasResumeContent(data)) {
+	if (!hasResumeContent(data, bibliography)) {
 		return { source: generateTypstTemplate(data, customTemplate), filename: `${fallbackName}-template.typ` };
 	}
 	return {
-		source: generateTypstCode(data, customTemplate),
+		source: generateTypstCode(data, customTemplate, bibliography),
 		filename: `${data.personalInfo.name.trim() || fallbackName}.typ`,
 	};
 }

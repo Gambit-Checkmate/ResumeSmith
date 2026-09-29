@@ -6,6 +6,8 @@ import { readFileSync } from 'node:fs';
 import { $typst } from '@myriaddreamin/typst.ts';
 import { generateTypstCode } from './typst-generator';
 import { withDocumentType } from './resume-utils';
+import { typstTextString } from './typst-escape';
+import { bibliographyMarkup } from './bibliography';
 import { defaultResumeData, type ResumeData } from './types';
 
 const COMPILER_WASM = 'node_modules/@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm';
@@ -87,4 +89,29 @@ it('compiles CV references with every citation field and hostile values', TIMEOU
 		},
 	];
 	await expect($typst.svg({ mainContent: generateTypstCode(data) })).resolves.toBeTruthy();
+});
+
+it('embeds text byte-for-byte, including line breaks, quotes, and backslashes', TIMEOUT, async () => {
+	const text = 'line one\n% comment "quoted" \\ back\r\n\ttabbed ü';
+	const bytes = [...new TextEncoder().encode(text)].join(', ');
+	await expect(
+		$typst.svg({ mainContent: `#assert.eq(array(bytes("${typstTextString(text)}")), (${bytes},))` }),
+	).resolves.toBeTruthy();
+});
+
+const BIB =
+	'@article{doe2020,\n  title = {A Representative Paper},\n  author = {Doe, Jane and Roe, R.},\n  journal = {Journal of Examples},\n  year = {2020}\n}\n% a comment that must stay on its own line\n';
+
+it('compiles a CV with a bibliography in every offered style', TIMEOUT, async () => {
+	const data = { ...structuredClone(defaultResumeData), documentType: 'cv' as const };
+	for (const style of ['apa', 'chicago-author-date', 'ieee', 'mla'] as const) {
+		await expect(
+			$typst.svg({ mainContent: generateTypstCode(data, null, { name: 'refs.bib', source: BIB, style }) }),
+		).resolves.toBeTruthy();
+	}
+});
+
+it('rejects a malformed bibliography at compile time', TIMEOUT, async () => {
+	const markup = bibliographyMarkup({ name: 'refs.bib', source: '@article{doe, title={Unclosed}', style: 'apa' });
+	await expect($typst.svg({ mainContent: markup })).rejects.toThrow(/BibLaTeX/);
 });

@@ -3,8 +3,50 @@
 	import { generateId } from '$lib/resume-utils';
 	import { aiFilled, clearHighlight } from '$lib/ai-highlight';
 	import { normalizeDoi, publicationStatuses, publicationStatusLabels } from '$lib/publication';
+	import {
+		bibliographyStyles,
+		bibliographyStyleLabels,
+		MAX_BIBLIOGRAPHY_LABEL,
+		MAX_BIBLIOGRAPHY_BYTES,
+		type BibliographyStyle,
+	} from '$lib/bibliography';
+	import { bibliographyStore, validateBibliography } from '$lib/bibliography-store';
 
 	let { data }: { data: ResumeData } = $props();
+
+	let bibInput = $state<HTMLInputElement>();
+	let bibStatus = $state<'idle' | 'checking'>('idle');
+	let bibError = $state('');
+
+	async function loadBibliography(file: File, style: BibliographyStyle) {
+		bibError = '';
+		// Check the name and size before reading anything into memory.
+		if (!file.name.toLowerCase().endsWith('.bib')) return (bibError = 'Choose a BibTeX (.bib) file.');
+		if (file.size > MAX_BIBLIOGRAPHY_BYTES)
+			return (bibError = `The BibTeX file must be ${MAX_BIBLIOGRAPHY_LABEL} or smaller.`);
+		bibStatus = 'checking';
+		try {
+			const bibliography = { name: file.name, source: await file.text(), style };
+			const error = await validateBibliography(bibliography);
+			if (error) bibError = error;
+			else bibliographyStore.save(bibliography);
+		} catch {
+			bibError = 'The BibTeX file could not be read.';
+		} finally {
+			bibStatus = 'idle';
+		}
+	}
+
+	function onPickBibliography(event: Event) {
+		const target = event.target as HTMLInputElement;
+		const file = target.files?.[0];
+		if (file) void loadBibliography(file, $bibliographyStore?.style ?? 'apa');
+		target.value = '';
+	}
+
+	function setStyle(style: BibliographyStyle) {
+		if ($bibliographyStore) bibliographyStore.save({ ...$bibliographyStore, style });
+	}
 
 	function addPublication() {
 		data.publications = [
@@ -47,6 +89,44 @@
 			Written exactly as in your author lists. It is shown in bold wherever it appears.
 		</p>
 	</div>
+	{#if data.documentType === 'cv'}
+		<div class="rounded-lg border p-4 space-y-2">
+			<h3 class="font-medium">BibTeX file (optional)</h3>
+			<p class="text-xs text-gray-500">
+				Every entry is listed after the publications below. The file stays in this browser and is never sent to AI. Up
+				to {MAX_BIBLIOGRAPHY_LABEL}.
+			</p>
+			{#if $bibliographyStore}
+				<div class="flex flex-wrap items-end gap-2">
+					<p class="min-w-0 flex-1 truncate text-sm">
+						<span class="text-gray-500">Using</span> <span class="font-medium">{$bibliographyStore.name}</span>
+					</p>
+					<div>
+						<label for="bibliography-style">Citation style</label>
+						<select
+							id="bibliography-style"
+							value={$bibliographyStore.style}
+							onchange={(event) => setStyle(event.currentTarget.value as BibliographyStyle)}
+						>
+							{#each bibliographyStyles as style}
+								<option value={style}>{bibliographyStyleLabels[style]}</option>
+							{/each}
+						</select>
+					</div>
+					<button class="secondary text-sm" onclick={() => bibInput?.click()} disabled={bibStatus === 'checking'}
+						>Replace</button
+					>
+					<button class="danger text-sm" onclick={() => bibliographyStore.clear()}>Remove</button>
+				</div>
+			{:else}
+				<button class="secondary text-sm" onclick={() => bibInput?.click()} disabled={bibStatus === 'checking'}>
+					{bibStatus === 'checking' ? 'Checking...' : 'Add a .bib file'}
+				</button>
+			{/if}
+			<input bind:this={bibInput} type="file" accept=".bib" class="hidden" onchange={onPickBibliography} />
+			{#if bibError}<p class="text-sm text-red-600" role="alert">{bibError}</p>{/if}
+		</div>
+	{/if}
 	{#each data.publications as publication, i (publication.id)}
 		{@const id = `publication-${publication.id}`}
 		<div class="border rounded-lg p-4 space-y-3 bg-gray-50">
