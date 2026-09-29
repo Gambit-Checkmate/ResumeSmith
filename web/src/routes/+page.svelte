@@ -237,6 +237,6 @@
 	</main>
 
 	<AppFooter />
-	<UploadModal bind:open={uploadOpen} onApplied={() => (showReviewBanner = true)} />
+	<UploadModal bind:open={uploadOpen} documentType={data.documentType} onApplied={() => (showReviewBanner = true)} />
 	<TemplateModal bind:open={templateOpen} {data} currentTemplate={customTemplate} />
 </div>
