@@ -35,6 +35,8 @@ Resume data (including the document type), the selected O\*NET occupation, and a
 
 The Typst compiler downloads its built-in fonts from jsDelivr. Web fonts (Carlito, Lato, Open Sans, Roboto) are downloaded from the Fontsource CDN on jsDelivr only when selected in the Fonts tab.
 
+The deployed site uses Vercel Web Analytics to count anonymous page views. It does not use cookies and does not receive resume content, templates, or uploaded files.
+
 AI-backed routes use stateless Vercel functions and request `store: false` from OpenAI. This project has no database or persistent server-side file storage.
 
 ## Local development
