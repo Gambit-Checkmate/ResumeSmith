@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tick } from 'svelte';
+	import { onDestroy, tick } from 'svelte';
 	import { fly, fade } from 'svelte/transition';
 	import { onetStore } from '$lib/onet-store';
 	import { onetSectionLabels } from '$lib/onet-types';
@@ -8,6 +8,7 @@
 	import { appendBullet, appendSkill, appendSkillToNewCategory, bulletTargets, skillTargets } from '$lib/onet-insert';
 	import { applyTailorEdits } from '$lib/onet-apply';
 	import { aiFilled } from '$lib/ai-highlight';
+	import { createOnetSearch } from '$lib/onet-search';
 	import OnetInsertMenu from './OnetInsertMenu.svelte';
 
 	let {
@@ -37,6 +38,25 @@
 	let searchInput = $state<HTMLInputElement>();
 
 	const GENERIC_ERROR = "Can't reach O*NET. Check your connection and retry.";
+	const search = createOnetSearch(
+		async (keyword, signal) => {
+			const res = await fetch(`/api/onet/search?keyword=${encodeURIComponent(keyword)}`, { signal });
+			if (!res.ok) throw new Error(await readError(res));
+			return (await res.json()).occupations;
+		},
+		(state) => {
+			results = state.results;
+			searching = state.searching;
+			searched = state.searched;
+			error = state.error;
+		},
+		GENERIC_ERROR,
+	);
+
+	onDestroy(() => {
+		clearTimeout(searchTimer);
+		search.invalidate();
+	});
 
 	$effect(() => {
 		if (!open) return;
@@ -59,38 +79,16 @@
 		}
 	}
 
-	async function runSearch(keyword: string) {
-		if (!keyword.trim()) {
-			results = [];
-			searched = false;
-			return;
-		}
-		searching = true;
-		error = '';
-		try {
-			const res = await fetch(`/api/onet/search?keyword=${encodeURIComponent(keyword)}`);
-			if (!res.ok) {
-				error = await readError(res);
-				results = [];
-			} else {
-				results = (await res.json()).occupations;
-			}
-			searched = true;
-		} catch {
-			error = GENERIC_ERROR;
-			results = [];
-		} finally {
-			searching = false;
-		}
-	}
-
 	function onQueryInput() {
 		clearTimeout(searchTimer);
+		search.invalidate();
 		const keyword = query;
-		searchTimer = setTimeout(() => runSearch(keyword), 300);
+		if (keyword.trim()) searchTimer = setTimeout(() => void search.run(keyword), 300);
 	}
 
 	async function load(ref: OnetOccupationRef) {
+		clearTimeout(searchTimer);
+		search.invalidate();
 		onetStore.select(ref);
 		onetStore.saveToStorage();
 		results = [];
@@ -231,6 +229,8 @@
 	}
 
 	function close() {
+		clearTimeout(searchTimer);
+		search.invalidate();
 		open = false;
 		menuFor = null;
 		// Clear the error so reopening retries. The auto-load effect below bails
