@@ -11,6 +11,7 @@ ResumeSmith is a privacy-conscious resume builder for forging polished, job-read
 - Record publications with authors, venue, volume, issue, pages, DOI, and status (published, in press, under review), with your own name in bold. In CV mode, optionally add a BibTeX (`.bib`) file, rendered by Typst in APA, Chicago author-date, IEEE, or MLA style.
 - Export a polished PDF using the bundled Typst WebAssembly compiler.
 - Download the Typst source of the resume. With no resume content yet, the download is the active template with only your styling choices and no personal data.
+- Copy or download readable plain-text resume content for pasting into application forms. The text comes directly from the form fields and follows your section order; it is not an ATS score or a guarantee of parser compatibility.
 - Pick separate heading and body fonts, and adjust font sizes with sliders or 0.5 pt steps.
 - Import TXT, DOCX, or PDF resumes and CVs through a review-and-consent gate before AI parsing. Long CVs are sent in bounded parts and stitched back together in the browser.
 - Extract selectable PDF text locally and use Tesseract OCR only on pages that need it.
