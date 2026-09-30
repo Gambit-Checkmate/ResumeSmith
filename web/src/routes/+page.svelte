@@ -4,6 +4,7 @@
 	import { onetStore } from '$lib/onet-store';
 	import { generateTypstCode, typstDownload } from '$lib/typst-generator';
 	import { downloadBlob } from '$lib/browser-download';
+	import { copyResumeText, serializeResumeText } from '$lib/resume-text';
 	import {
 		initCompiler,
 		compileToPdf,
@@ -47,6 +48,7 @@
 	let showCode = $state(false);
 	let isCompiling = $state(false);
 	let compileError = $state<string | null>(null);
+	let textExportStatus = $state('');
 	let customTemplates = $state<Record<DocumentType, CustomTemplate | null>>({ resume: null, cv: null });
 	let customTemplate = $derived(customTemplates[data.documentType]);
 	// The bibliography lives in its own store and only ever renders in a CV.
@@ -123,6 +125,19 @@
 		downloadBlob(new Blob([source], { type: 'text/plain;charset=utf-8' }), filename);
 	}
 
+	async function copyTextFile() {
+		const copied = await copyResumeText(serializeResumeText(data), navigator.clipboard);
+		textExportStatus = copied
+			? 'Resume text copied to clipboard.'
+			: 'Could not copy resume text. Download .txt is still available.';
+	}
+
+	function downloadTextFile() {
+		const name = (data.personalInfo.name.trim() || 'resume').replace(/[\\/:*?"<>|]/g, '_');
+		downloadBlob(new Blob([serializeResumeText(data)], { type: 'text/plain;charset=utf-8' }), `${name}.txt`);
+		textExportStatus = 'Resume text downloaded.';
+	}
+
 	const tabs = [
 		{ id: 'personal', label: 'Personal' },
 		{ id: 'profile', label: 'Profile' },
@@ -163,6 +178,9 @@
 		{estimatedOverOnePage}
 		onDownload={downloadPdfFile}
 		onDownloadTypst={downloadTypstFile}
+		onCopyText={copyTextFile}
+		onDownloadText={downloadTextFile}
+		{textExportStatus}
 		onUpload={() => (uploadOpen = true)}
 		onTemplate={() => (templateOpen = true)}
 		onTailor={() => (tailorOpen = true)}
