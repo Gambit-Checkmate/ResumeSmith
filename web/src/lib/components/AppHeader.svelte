@@ -11,6 +11,9 @@
 		estimatedOverOnePage,
 		onDownload,
 		onDownloadTypst,
+		onCopyText,
+		onDownloadText,
+		textExportStatus,
 		onUpload,
 		onTemplate,
 		onTailor,
@@ -25,6 +28,9 @@
 		estimatedOverOnePage: boolean;
 		onDownload: () => void;
 		onDownloadTypst: () => void;
+		onCopyText: () => void;
+		onDownloadText: () => void;
+		textExportStatus: string;
 		onUpload: () => void;
 		onTemplate: () => void;
 		onTailor: () => void;
@@ -68,6 +74,12 @@
 					title="Download the Typst source, or the empty template if the resume has no content yet"
 					>Download Typst</button
 				>
+				<button class="secondary" onclick={onCopyText} title="Copy readable resume text for application forms"
+					>Copy resume text</button
+				>
+				<button class="secondary" onclick={onDownloadText} title="Download readable resume text for application forms"
+					>Download .txt</button
+				>
 				<button class="primary" onclick={onDownload} disabled={isCompiling}>
 					{isCompiling ? 'Generating...' : 'Download PDF'}
 				</button>
@@ -76,6 +88,7 @@
 		{#if compileError}
 			<div class="mt-2 text-red-600 text-sm">{compileError}</div>
 		{/if}
+		<p class="sr-only" role="status" aria-live="polite">{textExportStatus}</p>
 		{#if documentType === 'cv'}
 			{#if compiledPageCount !== null}
 				<p class="mt-2 text-sm text-gray-600" aria-live="polite">
