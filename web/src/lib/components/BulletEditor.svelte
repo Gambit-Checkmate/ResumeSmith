@@ -9,6 +9,7 @@
 		path = '',
 		placeholder = '',
 	}: { bullets: string[]; label: string; path?: string; placeholder?: string } = $props();
+	const fieldId = $props.id();
 
 	function addBullet() {
 		bullets = [...bullets, ''];
@@ -41,12 +42,14 @@
 
 <div>
 	<div class="flex items-center justify-between mb-2">
-		<label class="mb-0">{label}</label>
+		<label for={`${fieldId}-0`} class="mb-0">{label}</label>
 		<button class="secondary text-xs px-2 py-1" onclick={addBullet}>+ Add bullet</button>
 	</div>
 	{#each bullets as _, bi}
 		<div class="flex gap-2 mb-2">
 			<textarea
+				id={`${fieldId}-${bi}`}
+				aria-label={`${label} bullet ${bi + 1}`}
 				rows="1"
 				bind:value={bullets[bi]}
 				{placeholder}

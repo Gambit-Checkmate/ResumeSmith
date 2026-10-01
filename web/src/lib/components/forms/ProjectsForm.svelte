@@ -24,40 +24,48 @@
 		<EntryCard index={i} onRemove={() => removeProject(project.id)}>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
 				<div>
-					<label>Project Name</label><input
-						type="text"
-						bind:value={project.name}
-						placeholder="My Project"
-						class:ai-filled={aiFilled.has(`projects.${i}.name`)}
-						oninput={() => clearHighlight(`projects.${i}.name`)}
-					/>
+					<label
+						>Project Name<input
+							type="text"
+							bind:value={project.name}
+							placeholder="My Project"
+							class:ai-filled={aiFilled.has(`projects.${i}.name`)}
+							oninput={() => clearHighlight(`projects.${i}.name`)}
+						/></label
+					>
 				</div>
 				<div>
-					<label>Tech Stack</label><input
-						type="text"
-						bind:value={project.stack}
-						placeholder="React, Node.js, PostgreSQL"
-						class:ai-filled={aiFilled.has(`projects.${i}.stack`)}
-						oninput={() => clearHighlight(`projects.${i}.stack`)}
-					/>
+					<label
+						>Tech Stack<input
+							type="text"
+							bind:value={project.stack}
+							placeholder="React, Node.js, PostgreSQL"
+							class:ai-filled={aiFilled.has(`projects.${i}.stack`)}
+							oninput={() => clearHighlight(`projects.${i}.stack`)}
+						/></label
+					>
 				</div>
 				<div>
-					<label>Award (optional)</label><input
-						type="text"
-						bind:value={project.award}
-						placeholder="Hackathon Winner"
-						class:ai-filled={aiFilled.has(`projects.${i}.award`)}
-						oninput={() => clearHighlight(`projects.${i}.award`)}
-					/>
+					<label
+						>Award (optional)<input
+							type="text"
+							bind:value={project.award}
+							placeholder="Hackathon Winner"
+							class:ai-filled={aiFilled.has(`projects.${i}.award`)}
+							oninput={() => clearHighlight(`projects.${i}.award`)}
+						/></label
+					>
 				</div>
 				<div>
-					<label>Project URL</label><input
-						type="text"
-						bind:value={project.url}
-						placeholder="https://github.com/..."
-						class:ai-filled={aiFilled.has(`projects.${i}.url`)}
-						oninput={() => clearHighlight(`projects.${i}.url`)}
-					/>
+					<label
+						>Project URL<input
+							type="text"
+							bind:value={project.url}
+							placeholder="https://github.com/..."
+							class:ai-filled={aiFilled.has(`projects.${i}.url`)}
+							oninput={() => clearHighlight(`projects.${i}.url`)}
+						/></label
+					>
 				</div>
 			</div>
 			<BulletEditor

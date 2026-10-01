@@ -38,40 +38,48 @@
 		<EntryCard index={i} onRemove={() => removeEducation(edu.id)}>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
 				<div>
-					<label>Institution</label><input
-						type="text"
-						bind:value={edu.institution}
-						placeholder="University Name"
-						class:ai-filled={aiFilled.has(`education.${i}.institution`)}
-						oninput={() => clearHighlight(`education.${i}.institution`)}
-					/>
+					<label
+						>Institution<input
+							type="text"
+							bind:value={edu.institution}
+							placeholder="University Name"
+							class:ai-filled={aiFilled.has(`education.${i}.institution`)}
+							oninput={() => clearHighlight(`education.${i}.institution`)}
+						/></label
+					>
 				</div>
 				<div>
-					<label>Location</label><input
-						type="text"
-						bind:value={edu.location}
-						placeholder="City, State"
-						class:ai-filled={aiFilled.has(`education.${i}.location`)}
-						oninput={() => clearHighlight(`education.${i}.location`)}
-					/>
+					<label
+						>Location<input
+							type="text"
+							bind:value={edu.location}
+							placeholder="City, State"
+							class:ai-filled={aiFilled.has(`education.${i}.location`)}
+							oninput={() => clearHighlight(`education.${i}.location`)}
+						/></label
+					>
 				</div>
 				<div>
-					<label>Degree</label><input
-						type="text"
-						bind:value={edu.degree}
-						placeholder="Bachelor of Sciences"
-						class:ai-filled={aiFilled.has(`education.${i}.degree`)}
-						oninput={() => clearHighlight(`education.${i}.degree`)}
-					/>
+					<label
+						>Degree<input
+							type="text"
+							bind:value={edu.degree}
+							placeholder="Bachelor of Sciences"
+							class:ai-filled={aiFilled.has(`education.${i}.degree`)}
+							oninput={() => clearHighlight(`education.${i}.degree`)}
+						/></label
+					>
 				</div>
 				<div>
-					<label>Major</label><input
-						type="text"
-						bind:value={edu.major}
-						placeholder="Computer Science"
-						class:ai-filled={aiFilled.has(`education.${i}.major`)}
-						oninput={() => clearHighlight(`education.${i}.major`)}
-					/>
+					<label
+						>Major<input
+							type="text"
+							bind:value={edu.major}
+							placeholder="Computer Science"
+							class:ai-filled={aiFilled.has(`education.${i}.major`)}
+							oninput={() => clearHighlight(`education.${i}.major`)}
+						/></label
+					>
 				</div>
 				<DateRange
 					bind:startDate={edu.startDate}

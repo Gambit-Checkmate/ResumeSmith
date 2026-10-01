@@ -16,32 +16,40 @@
 	</div>
 	<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 		<div>
-			<label>Header Color</label><input
-				type="color"
-				bind:value={data.colors.headColor}
-				class="w-full h-10 p-1 rounded cursor-pointer"
-			/>
+			<label
+				>Header Color<input
+					type="color"
+					bind:value={data.colors.headColor}
+					class="w-full h-10 p-1 rounded cursor-pointer"
+				/></label
+			>
 		</div>
 		<div>
-			<label>Text Color</label><input
-				type="color"
-				bind:value={data.colors.textColor}
-				class="w-full h-10 p-1 rounded cursor-pointer"
-			/>
+			<label
+				>Text Color<input
+					type="color"
+					bind:value={data.colors.textColor}
+					class="w-full h-10 p-1 rounded cursor-pointer"
+				/></label
+			>
 		</div>
 		<div>
-			<label>Accent Color</label><input
-				type="color"
-				bind:value={data.colors.accentColor}
-				class="w-full h-10 p-1 rounded cursor-pointer"
-			/>
+			<label
+				>Accent Color<input
+					type="color"
+					bind:value={data.colors.accentColor}
+					class="w-full h-10 p-1 rounded cursor-pointer"
+				/></label
+			>
 		</div>
 		<div>
-			<label>Link Color</label><input
-				type="color"
-				bind:value={data.colors.linkColor}
-				class="w-full h-10 p-1 rounded cursor-pointer"
-			/>
+			<label
+				>Link Color<input
+					type="color"
+					bind:value={data.colors.linkColor}
+					class="w-full h-10 p-1 rounded cursor-pointer"
+				/></label
+			>
 		</div>
 	</div>
 </div>

@@ -23,34 +23,40 @@
 			<div class="flex justify-between items-start">
 				<div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
 					<div>
-						<label>Title</label><input
-							type="text"
-							bind:value={achievement.title}
-							placeholder="AWS Certified Developer"
-							class:ai-filled={aiFilled.has(`achievements.${i}.title`)}
-							oninput={() => clearHighlight(`achievements.${i}.title`)}
-						/>
+						<label
+							>Title<input
+								type="text"
+								bind:value={achievement.title}
+								placeholder="AWS Certified Developer"
+								class:ai-filled={aiFilled.has(`achievements.${i}.title`)}
+								oninput={() => clearHighlight(`achievements.${i}.title`)}
+							/></label
+						>
 					</div>
 					<div>
-						<label>Date</label><input
-							type="month"
-							bind:value={achievement.date}
-							class:ai-filled={aiFilled.has(`achievements.${i}.date`)}
-							oninput={() => clearHighlight(`achievements.${i}.date`)}
-						/>
+						<label
+							>Date<input
+								type="month"
+								bind:value={achievement.date}
+								class:ai-filled={aiFilled.has(`achievements.${i}.date`)}
+								oninput={() => clearHighlight(`achievements.${i}.date`)}
+							/></label
+						>
 					</div>
 				</div>
 				<button class="danger text-sm px-2 py-1 ml-2" onclick={() => removeAchievement(achievement.id)}>Remove</button>
 			</div>
 			<div>
-				<label>Description</label>
-				<textarea
-					bind:value={achievement.description}
-					rows="2"
-					placeholder="Brief description of the achievement or certification..."
-					class:ai-filled={aiFilled.has(`achievements.${i}.description`)}
-					oninput={() => clearHighlight(`achievements.${i}.description`)}
-				></textarea>
+				<label
+					>Description
+					<textarea
+						bind:value={achievement.description}
+						rows="2"
+						placeholder="Brief description of the achievement or certification..."
+						class:ai-filled={aiFilled.has(`achievements.${i}.description`)}
+						oninput={() => clearHighlight(`achievements.${i}.description`)}
+					></textarea></label
+				>
 			</div>
 		</div>
 	{/each}

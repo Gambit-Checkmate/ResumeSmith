@@ -26,37 +26,43 @@
 			<div class="flex justify-between items-start">
 				<div class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
 					<div>
-						<label>Level</label>
-						<select
-							bind:value={clearance.level}
-							class:ai-filled={aiFilled.has(`clearance.${i}.level`)}
-							onchange={() => clearHighlight(`clearance.${i}.level`)}
+						<label
+							>Level
+							<select
+								bind:value={clearance.level}
+								class:ai-filled={aiFilled.has(`clearance.${i}.level`)}
+								onchange={() => clearHighlight(`clearance.${i}.level`)}
+							>
+								{#each LEVELS as level}
+									<option value={level}>{level}</option>
+								{/each}
+							</select></label
 						>
-							{#each LEVELS as level}
-								<option value={level}>{level}</option>
-							{/each}
-						</select>
 					</div>
 					<div>
-						<label>Status</label>
-						<select
-							bind:value={clearance.status}
-							class:ai-filled={aiFilled.has(`clearance.${i}.status`)}
-							onchange={() => clearHighlight(`clearance.${i}.status`)}
+						<label
+							>Status
+							<select
+								bind:value={clearance.status}
+								class:ai-filled={aiFilled.has(`clearance.${i}.status`)}
+								onchange={() => clearHighlight(`clearance.${i}.status`)}
+							>
+								{#each STATUSES as status}
+									<option value={status}>{status}</option>
+								{/each}
+							</select></label
 						>
-							{#each STATUSES as status}
-								<option value={status}>{status}</option>
-							{/each}
-						</select>
 					</div>
 					<div>
-						<label>Date Granted</label>
-						<input
-							type="month"
-							bind:value={clearance.dateGranted}
-							class:ai-filled={aiFilled.has(`clearance.${i}.dateGranted`)}
-							oninput={() => clearHighlight(`clearance.${i}.dateGranted`)}
-						/>
+						<label
+							>Date Granted
+							<input
+								type="month"
+								bind:value={clearance.dateGranted}
+								class:ai-filled={aiFilled.has(`clearance.${i}.dateGranted`)}
+								oninput={() => clearHighlight(`clearance.${i}.dateGranted`)}
+							/></label
+						>
 					</div>
 				</div>
 				<button class="danger text-sm px-2 py-1 ml-2" onclick={() => removeClearance(clearance.id)}>Remove</button>

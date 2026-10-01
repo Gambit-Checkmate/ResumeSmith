@@ -37,31 +37,37 @@
 		<EntryCard index={i} onRemove={() => removeLeadership(lead.id)}>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
 				<div>
-					<label>Title</label><input
-						type="text"
-						bind:value={lead.title}
-						placeholder="Team Lead"
-						class:ai-filled={aiFilled.has(`leadership.${i}.title`)}
-						oninput={() => clearHighlight(`leadership.${i}.title`)}
-					/>
+					<label
+						>Title<input
+							type="text"
+							bind:value={lead.title}
+							placeholder="Team Lead"
+							class:ai-filled={aiFilled.has(`leadership.${i}.title`)}
+							oninput={() => clearHighlight(`leadership.${i}.title`)}
+						/></label
+					>
 				</div>
 				<div>
-					<label>Organization</label><input
-						type="text"
-						bind:value={lead.organization}
-						placeholder="Organization Name"
-						class:ai-filled={aiFilled.has(`leadership.${i}.organization`)}
-						oninput={() => clearHighlight(`leadership.${i}.organization`)}
-					/>
+					<label
+						>Organization<input
+							type="text"
+							bind:value={lead.organization}
+							placeholder="Organization Name"
+							class:ai-filled={aiFilled.has(`leadership.${i}.organization`)}
+							oninput={() => clearHighlight(`leadership.${i}.organization`)}
+						/></label
+					>
 				</div>
 				<div class="md:col-span-2">
-					<label>Location</label><input
-						type="text"
-						bind:value={lead.location}
-						placeholder="City, State"
-						class:ai-filled={aiFilled.has(`leadership.${i}.location`)}
-						oninput={() => clearHighlight(`leadership.${i}.location`)}
-					/>
+					<label
+						>Location<input
+							type="text"
+							bind:value={lead.location}
+							placeholder="City, State"
+							class:ai-filled={aiFilled.has(`leadership.${i}.location`)}
+							oninput={() => clearHighlight(`leadership.${i}.location`)}
+						/></label
+					>
 				</div>
 				<DateRange
 					bind:startDate={lead.startDate}

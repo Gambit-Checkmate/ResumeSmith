@@ -19,22 +19,26 @@
 </script>
 
 <div>
-	<label>Start Date</label><input
-		type="month"
-		bind:value={startDate}
-		class:ai-filled={aiFilled.has(`${path}.startDate`)}
-		oninput={() => clearHighlight(`${path}.startDate`)}
-	/>
+	<label
+		>Start Date<input
+			type="month"
+			bind:value={startDate}
+			class:ai-filled={aiFilled.has(`${path}.startDate`)}
+			oninput={() => clearHighlight(`${path}.startDate`)}
+		/></label
+	>
 </div>
 <div>
-	<label>{endLabel}</label>
-	<input
-		type="month"
-		bind:value={endDate}
-		disabled={isPresent}
-		class:ai-filled={aiFilled.has(`${path}.endDate`)}
-		oninput={() => clearHighlight(`${path}.endDate`)}
-	/>
+	<label
+		>{endLabel}
+		<input
+			type="month"
+			bind:value={endDate}
+			disabled={isPresent}
+			class:ai-filled={aiFilled.has(`${path}.endDate`)}
+			oninput={() => clearHighlight(`${path}.endDate`)}
+		/></label
+	>
 	<label class="flex items-center gap-2 mt-2 cursor-pointer select-none">
 		<input type="checkbox" bind:checked={isPresent} class="w-4 h-4 rounded" />
 		<span class="text-sm text-gray-600">{presentLabel}</span>
