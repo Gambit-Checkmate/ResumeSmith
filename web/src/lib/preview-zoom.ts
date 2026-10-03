@@ -8,7 +8,10 @@ export function previewWidth(availableWidth: number, zoom: number | null): numbe
 	return zoom === null ? Math.max(1, availableWidth) : (BASE_PREVIEW_WIDTH * zoom) / 100;
 }
 
-export function stepPreviewZoom(zoom: number | null, direction: -1 | 1): number {
-	const current = zoom ?? 100;
-	return Math.max(MIN_PREVIEW_ZOOM, Math.min(MAX_PREVIEW_ZOOM, current + direction * PREVIEW_ZOOM_STEP));
+export function stepPreviewZoom(current: number, direction: -1 | 1): number {
+	const next =
+		direction === 1
+			? (Math.floor(current / PREVIEW_ZOOM_STEP) + 1) * PREVIEW_ZOOM_STEP
+			: (Math.ceil(current / PREVIEW_ZOOM_STEP) - 1) * PREVIEW_ZOOM_STEP;
+	return Math.max(MIN_PREVIEW_ZOOM, Math.min(MAX_PREVIEW_ZOOM, next));
 }

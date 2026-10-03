@@ -10,8 +10,12 @@ describe('preview zoom', () => {
 	});
 
 	it('steps from fit mode and respects both zoom boundaries', () => {
-		expect(stepPreviewZoom(null, 1)).toBe(125);
-		expect(stepPreviewZoom(null, -1)).toBe(75);
+		expect(stepPreviewZoom(140, 1)).toBe(150);
+		expect(stepPreviewZoom(140, -1)).toBe(125);
+		expect(stepPreviewZoom(60, 1)).toBe(75);
+		expect(stepPreviewZoom(60, -1)).toBe(50);
+		expect(stepPreviewZoom(100, 1)).toBe(125);
+		expect(stepPreviewZoom(100, -1)).toBe(75);
 		expect(stepPreviewZoom(50, -1)).toBe(50);
 		expect(stepPreviewZoom(200, 1)).toBe(200);
 	});

@@ -1,7 +1,13 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import type { CompiledPreview } from '$lib/pdf-compiler';
-	import { MAX_PREVIEW_ZOOM, MIN_PREVIEW_ZOOM, previewWidth, stepPreviewZoom } from '$lib/preview-zoom';
+	import {
+		BASE_PREVIEW_WIDTH,
+		MAX_PREVIEW_ZOOM,
+		MIN_PREVIEW_ZOOM,
+		previewWidth,
+		stepPreviewZoom,
+	} from '$lib/preview-zoom';
 
 	// The page is bindable because the preview remounts on every recompile; the parent keeps the reader's place.
 	let {
@@ -11,9 +17,10 @@
 	}: { preview: CompiledPreview; documentLabel: string; pageIndex?: number } = $props();
 	let pageSvgs = $state<string[]>([]);
 	let zoom = $state<number | null>(null);
-	let availableWidth = $state(510);
+	let availableWidth = $state(BASE_PREVIEW_WIDTH);
 	let scroller = $state<HTMLElement>();
 	let pageWidth = $derived(previewWidth(availableWidth, zoom));
+	let effectiveZoom = $derived((pageWidth / BASE_PREVIEW_WIDTH) * 100);
 
 	$effect(() => {
 		if (!scroller) return;
@@ -79,19 +86,19 @@
 >
 	<div class="flex w-full flex-wrap items-center justify-center gap-2" role="group" aria-label="Preview zoom">
 		<button
-			class="secondary px-3 py-1 text-sm disabled:opacity-50"
+			class="secondary px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
 			aria-label="Zoom out preview"
-			disabled={zoom !== null && zoom <= MIN_PREVIEW_ZOOM}
-			onclick={() => (zoom = stepPreviewZoom(zoom, -1))}>−</button
+			disabled={effectiveZoom <= MIN_PREVIEW_ZOOM}
+			onclick={() => (zoom = stepPreviewZoom(effectiveZoom, -1))}>−</button
 		>
-		<span class="min-w-12 text-center text-sm font-medium text-white" aria-live="polite"
-			>{zoom === null ? `Fit · ${Math.round((pageWidth / 510) * 100)}%` : `${zoom}%`}</span
+		<span class="min-w-12 text-center text-sm font-medium text-white" aria-live={zoom === null ? 'off' : 'polite'}
+			>{zoom === null ? `Fit · ${Math.round(effectiveZoom)}%` : `${zoom}%`}</span
 		>
 		<button
-			class="secondary px-3 py-1 text-sm disabled:opacity-50"
+			class="secondary px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
 			aria-label="Zoom in preview"
-			disabled={zoom !== null && zoom >= MAX_PREVIEW_ZOOM}
-			onclick={() => (zoom = stepPreviewZoom(zoom, 1))}>+</button
+			disabled={effectiveZoom >= MAX_PREVIEW_ZOOM}
+			onclick={() => (zoom = stepPreviewZoom(effectiveZoom, 1))}>+</button
 		>
 		<button
 			class="secondary px-3 py-1 text-sm"
@@ -103,14 +110,14 @@
 	{#if pageSvgs.length > 1 && pageSvgs.length === preview.pages.length}
 		<nav class="flex w-full items-center justify-between gap-3" aria-label="Preview pages">
 			<button
-				class="secondary px-3 py-1 text-sm disabled:opacity-50"
+				class="secondary px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
 				onclick={() => (pageIndex -= 1)}
 				disabled={pageIndex === 0}
 				aria-label="Previous preview page">← Previous</button
 			>
 			<span class="text-sm font-medium text-white" aria-live="polite">Page {pageIndex + 1} of {pageSvgs.length}</span>
 			<button
-				class="secondary px-3 py-1 text-sm disabled:opacity-50"
+				class="secondary px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
 				onclick={() => (pageIndex += 1)}
 				disabled={pageIndex === pageSvgs.length - 1}
 				aria-label="Next preview page">Next →</button
