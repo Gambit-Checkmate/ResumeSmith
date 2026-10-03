@@ -26,6 +26,7 @@
 	function removeLeadership(id: string) {
 		data.leadership = data.leadership.filter((l) => l.id !== id);
 	}
+	const uid = $props.id();
 </script>
 
 <div class="space-y-4">
@@ -37,37 +38,37 @@
 		<EntryCard index={i} onRemove={() => removeLeadership(lead.id)}>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
 				<div>
-					<label
-						>Title<input
-							type="text"
-							bind:value={lead.title}
-							placeholder="Team Lead"
-							class:ai-filled={aiFilled.has(`leadership.${i}.title`)}
-							oninput={() => clearHighlight(`leadership.${i}.title`)}
-						/></label
-					>
+					<label for={`${uid}-${i}-title`}>Title</label>
+					<input
+						id={`${uid}-${i}-title`}
+						type="text"
+						bind:value={lead.title}
+						placeholder="Team Lead"
+						class:ai-filled={aiFilled.has(`leadership.${i}.title`)}
+						oninput={() => clearHighlight(`leadership.${i}.title`)}
+					/>
 				</div>
 				<div>
-					<label
-						>Organization<input
-							type="text"
-							bind:value={lead.organization}
-							placeholder="Organization Name"
-							class:ai-filled={aiFilled.has(`leadership.${i}.organization`)}
-							oninput={() => clearHighlight(`leadership.${i}.organization`)}
-						/></label
-					>
+					<label for={`${uid}-${i}-organization`}>Organization</label>
+					<input
+						id={`${uid}-${i}-organization`}
+						type="text"
+						bind:value={lead.organization}
+						placeholder="Organization Name"
+						class:ai-filled={aiFilled.has(`leadership.${i}.organization`)}
+						oninput={() => clearHighlight(`leadership.${i}.organization`)}
+					/>
 				</div>
 				<div class="md:col-span-2">
-					<label
-						>Location<input
-							type="text"
-							bind:value={lead.location}
-							placeholder="City, State"
-							class:ai-filled={aiFilled.has(`leadership.${i}.location`)}
-							oninput={() => clearHighlight(`leadership.${i}.location`)}
-						/></label
-					>
+					<label for={`${uid}-${i}-location`}>Location</label>
+					<input
+						id={`${uid}-${i}-location`}
+						type="text"
+						bind:value={lead.location}
+						placeholder="City, State"
+						class:ai-filled={aiFilled.has(`leadership.${i}.location`)}
+						oninput={() => clearHighlight(`leadership.${i}.location`)}
+					/>
 				</div>
 				<DateRange
 					bind:startDate={lead.startDate}

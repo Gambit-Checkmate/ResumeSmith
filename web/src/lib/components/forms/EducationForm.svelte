@@ -27,6 +27,7 @@
 	function removeEducation(id: string) {
 		data.education = data.education.filter((e) => e.id !== id);
 	}
+	const uid = $props.id();
 </script>
 
 <div class="space-y-4">
@@ -38,48 +39,48 @@
 		<EntryCard index={i} onRemove={() => removeEducation(edu.id)}>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
 				<div>
-					<label
-						>Institution<input
-							type="text"
-							bind:value={edu.institution}
-							placeholder="University Name"
-							class:ai-filled={aiFilled.has(`education.${i}.institution`)}
-							oninput={() => clearHighlight(`education.${i}.institution`)}
-						/></label
-					>
+					<label for={`${uid}-${i}-institution`}>Institution</label>
+					<input
+						id={`${uid}-${i}-institution`}
+						type="text"
+						bind:value={edu.institution}
+						placeholder="University Name"
+						class:ai-filled={aiFilled.has(`education.${i}.institution`)}
+						oninput={() => clearHighlight(`education.${i}.institution`)}
+					/>
 				</div>
 				<div>
-					<label
-						>Location<input
-							type="text"
-							bind:value={edu.location}
-							placeholder="City, State"
-							class:ai-filled={aiFilled.has(`education.${i}.location`)}
-							oninput={() => clearHighlight(`education.${i}.location`)}
-						/></label
-					>
+					<label for={`${uid}-${i}-location`}>Location</label>
+					<input
+						id={`${uid}-${i}-location`}
+						type="text"
+						bind:value={edu.location}
+						placeholder="City, State"
+						class:ai-filled={aiFilled.has(`education.${i}.location`)}
+						oninput={() => clearHighlight(`education.${i}.location`)}
+					/>
 				</div>
 				<div>
-					<label
-						>Degree<input
-							type="text"
-							bind:value={edu.degree}
-							placeholder="Bachelor of Sciences"
-							class:ai-filled={aiFilled.has(`education.${i}.degree`)}
-							oninput={() => clearHighlight(`education.${i}.degree`)}
-						/></label
-					>
+					<label for={`${uid}-${i}-degree`}>Degree</label>
+					<input
+						id={`${uid}-${i}-degree`}
+						type="text"
+						bind:value={edu.degree}
+						placeholder="Bachelor of Sciences"
+						class:ai-filled={aiFilled.has(`education.${i}.degree`)}
+						oninput={() => clearHighlight(`education.${i}.degree`)}
+					/>
 				</div>
 				<div>
-					<label
-						>Major<input
-							type="text"
-							bind:value={edu.major}
-							placeholder="Computer Science"
-							class:ai-filled={aiFilled.has(`education.${i}.major`)}
-							oninput={() => clearHighlight(`education.${i}.major`)}
-						/></label
-					>
+					<label for={`${uid}-${i}-major`}>Major</label>
+					<input
+						id={`${uid}-${i}-major`}
+						type="text"
+						bind:value={edu.major}
+						placeholder="Computer Science"
+						class:ai-filled={aiFilled.has(`education.${i}.major`)}
+						oninput={() => clearHighlight(`education.${i}.major`)}
+					/>
 				</div>
 				<DateRange
 					bind:startDate={edu.startDate}

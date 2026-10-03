@@ -11,6 +11,7 @@
 	function removeSkillCategory(id: string) {
 		data.skills = data.skills.filter((s) => s.id !== id);
 	}
+	const uid = $props.id();
 </script>
 
 <div class="space-y-4">
@@ -23,26 +24,26 @@
 			<div class="flex gap-3 items-start">
 				<div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
 					<div>
-						<label
-							>Category<input
-								type="text"
-								bind:value={skill.category}
-								placeholder="Languages"
-								class:ai-filled={aiFilled.has(`skills.${i}.category`)}
-								oninput={() => clearHighlight(`skills.${i}.category`)}
-							/></label
-						>
+						<label for={`${uid}-${i}-category`}>Category</label>
+						<input
+							id={`${uid}-${i}-category`}
+							type="text"
+							bind:value={skill.category}
+							placeholder="Languages"
+							class:ai-filled={aiFilled.has(`skills.${i}.category`)}
+							oninput={() => clearHighlight(`skills.${i}.category`)}
+						/>
 					</div>
 					<div>
-						<label
-							>Skills<input
-								type="text"
-								bind:value={skill.skills}
-								placeholder="Python, TypeScript, C++"
-								class:ai-filled={aiFilled.has(`skills.${i}.skills`)}
-								oninput={() => clearHighlight(`skills.${i}.skills`)}
-							/></label
-						>
+						<label for={`${uid}-${i}-skills`}>Skills</label>
+						<input
+							id={`${uid}-${i}-skills`}
+							type="text"
+							bind:value={skill.skills}
+							placeholder="Python, TypeScript, C++"
+							class:ai-filled={aiFilled.has(`skills.${i}.skills`)}
+							oninput={() => clearHighlight(`skills.${i}.skills`)}
+						/>
 					</div>
 				</div>
 				<button class="danger text-sm px-2 py-1" onclick={() => removeSkillCategory(skill.id)}>Remove</button>

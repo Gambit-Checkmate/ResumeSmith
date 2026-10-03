@@ -42,7 +42,7 @@
 
 <div>
 	<div class="flex items-center justify-between mb-2">
-		<label for={`${fieldId}-0`} class="mb-0">{label}</label>
+		<span class="text-sm font-medium text-gray-700">{label}</span>
 		<button class="secondary text-xs px-2 py-1" onclick={addBullet}>+ Add bullet</button>
 	</div>
 	{#each bullets as _, bi}

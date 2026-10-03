@@ -14,6 +14,7 @@
 	function removeClearance(id: string) {
 		data.clearance = data.clearance.filter((c) => c.id !== id);
 	}
+	const uid = $props.id();
 </script>
 
 <div class="space-y-4">
@@ -26,43 +27,40 @@
 			<div class="flex justify-between items-start">
 				<div class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
 					<div>
-						<label
-							>Level
-							<select
-								bind:value={clearance.level}
-								class:ai-filled={aiFilled.has(`clearance.${i}.level`)}
-								onchange={() => clearHighlight(`clearance.${i}.level`)}
-							>
-								{#each LEVELS as level}
-									<option value={level}>{level}</option>
-								{/each}
-							</select></label
+						<label for={`${uid}-${i}-level`}>Level</label>
+						<select
+							id={`${uid}-${i}-level`}
+							bind:value={clearance.level}
+							class:ai-filled={aiFilled.has(`clearance.${i}.level`)}
+							onchange={() => clearHighlight(`clearance.${i}.level`)}
 						>
+							{#each LEVELS as level}
+								<option value={level}>{level}</option>
+							{/each}
+						</select>
 					</div>
 					<div>
-						<label
-							>Status
-							<select
-								bind:value={clearance.status}
-								class:ai-filled={aiFilled.has(`clearance.${i}.status`)}
-								onchange={() => clearHighlight(`clearance.${i}.status`)}
-							>
-								{#each STATUSES as status}
-									<option value={status}>{status}</option>
-								{/each}
-							</select></label
+						<label for={`${uid}-${i}-status`}>Status</label>
+						<select
+							id={`${uid}-${i}-status`}
+							bind:value={clearance.status}
+							class:ai-filled={aiFilled.has(`clearance.${i}.status`)}
+							onchange={() => clearHighlight(`clearance.${i}.status`)}
 						>
+							{#each STATUSES as status}
+								<option value={status}>{status}</option>
+							{/each}
+						</select>
 					</div>
 					<div>
-						<label
-							>Date Granted
-							<input
-								type="month"
-								bind:value={clearance.dateGranted}
-								class:ai-filled={aiFilled.has(`clearance.${i}.dateGranted`)}
-								oninput={() => clearHighlight(`clearance.${i}.dateGranted`)}
-							/></label
-						>
+						<label for={`${uid}-${i}-date-granted`}>Date Granted</label>
+						<input
+							id={`${uid}-${i}-date-granted`}
+							type="month"
+							bind:value={clearance.dateGranted}
+							class:ai-filled={aiFilled.has(`clearance.${i}.dateGranted`)}
+							oninput={() => clearHighlight(`clearance.${i}.dateGranted`)}
+						/>
 					</div>
 				</div>
 				<button class="danger text-sm px-2 py-1 ml-2" onclick={() => removeClearance(clearance.id)}>Remove</button>
