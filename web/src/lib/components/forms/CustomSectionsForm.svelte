@@ -3,7 +3,9 @@
 	import { customSectionKey } from '$lib/types';
 	import { generateId } from '$lib/resume-utils';
 	import { aiFilled, clearHighlight } from '$lib/ai-highlight';
+	import { moveWithHighlights } from '$lib/reorder';
 	import BulletEditor from '../BulletEditor.svelte';
+	import MoveControls from '../MoveControls.svelte';
 
 	let { data }: { data: ResumeData } = $props();
 
@@ -83,7 +85,21 @@
 					</div>
 					<BulletEditor bind:bullets={entry.bullets} label="Details" path={`${path}.bullets`} />
 					<div class="flex justify-end">
-						<button class="danger text-xs px-2 py-1" onclick={() => removeEntry(si, entry.id)}>Remove entry</button>
+						<div class="flex items-center gap-2">
+							<MoveControls
+								index={ei}
+								count={section.entries.length}
+								label={`entry ${ei + 1} in ${section.heading || 'custom section'}`}
+								onMove={(direction) =>
+									(section.entries = moveWithHighlights(
+										section.entries,
+										`customSections.${si}.entries`,
+										ei,
+										direction,
+									))}
+							/>
+							<button class="danger text-xs px-2 py-1" onclick={() => removeEntry(si, entry.id)}>Remove entry</button>
+						</div>
 					</div>
 				</div>
 			{/each}

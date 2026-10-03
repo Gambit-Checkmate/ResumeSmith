@@ -2,6 +2,7 @@
 	import type { ResumeData } from '$lib/types';
 	import { generateId } from '$lib/resume-utils';
 	import { aiFilled, clearHighlight } from '$lib/ai-highlight';
+	import { moveWithHighlights } from '$lib/reorder';
 	import EntryCard from '../EntryCard.svelte';
 	import DateRange from '../DateRange.svelte';
 	import BulletEditor from '../BulletEditor.svelte';
@@ -34,8 +35,15 @@
 		<h2 class="text-lg font-semibold">Work Experience</h2>
 		<button class="primary text-sm" onclick={addWorkExperience}>+ Add job</button>
 	</div>
-	{#each data.workExperience as work, i}
-		<EntryCard index={i} onRemove={() => removeWorkExperience(work.id)}>
+	{#each data.workExperience as work, i (work.id)}
+		<EntryCard
+			index={i}
+			count={data.workExperience.length}
+			label={`job ${i + 1}`}
+			onMove={(direction) =>
+				(data.workExperience = moveWithHighlights(data.workExperience, 'workExperience', i, direction))}
+			onRemove={() => removeWorkExperience(work.id)}
+		>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
 				<div>
 					<label for={`${uid}-${i}-job-title`}>Job Title</label>

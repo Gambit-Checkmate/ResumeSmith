@@ -13,6 +13,19 @@ export function resetHighlights(): void {
 	aiFilled.clear();
 }
 
+/** Swap complete dotted index segments, including nested fields and bullet paths. */
+export function swapIndexedHighlights(prefix: string, first: number, second: number): void {
+	const firstPath = `${prefix}.${first}`;
+	const secondPath = `${prefix}.${second}`;
+	const swapped = [...aiFilled].map((path) => {
+		if (path === firstPath || path.startsWith(`${firstPath}.`)) return secondPath + path.slice(firstPath.length);
+		if (path === secondPath || path.startsWith(`${secondPath}.`)) return firstPath + path.slice(secondPath.length);
+		return path;
+	});
+	aiFilled.clear();
+	for (const path of swapped) aiFilled.add(path);
+}
+
 function markObject(prefix: string, obj: Record<string, unknown>): void {
 	for (const [key, value] of Object.entries(obj)) {
 		if (key === 'id') continue;
