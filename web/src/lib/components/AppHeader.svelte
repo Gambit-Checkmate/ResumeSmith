@@ -14,6 +14,7 @@
 		onCopyText,
 		onDownloadText,
 		textExportStatus,
+		onBackup,
 		onUpload,
 		onTemplate,
 		onTailor,
@@ -31,6 +32,7 @@
 		onCopyText: () => void;
 		onDownloadText: () => void;
 		textExportStatus: string;
+		onBackup: () => void;
 		onUpload: () => void;
 		onTemplate: () => void;
 		onTailor: () => void;
@@ -55,7 +57,10 @@
 					{/each}
 				</div>
 			</div>
-			<div class="flex gap-2">
+			<div class="flex flex-wrap gap-2">
+				<button class="secondary" onclick={onBackup} title="Download or restore editable resume data"
+					>Backup / restore</button
+				>
 				<button class="secondary" onclick={onUpload} title="Fill the form from an existing resume or CV"
 					>{documentType === 'cv' ? 'Import CV' : 'Import resume'}</button
 				>

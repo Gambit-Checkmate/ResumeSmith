@@ -19,8 +19,11 @@
 	import { customTemplateStores, type CustomTemplate } from '$lib/template-store';
 	import { createPreviewScheduler } from '$lib/preview-scheduler';
 	import { bibliographyStore } from '$lib/bibliography-store';
+	import { resetHighlights } from '$lib/ai-highlight';
+	import type { ResumeBackup } from '$lib/resume-backup';
 
 	import AppHeader from '$lib/components/AppHeader.svelte';
+	import BackupModal from '$lib/components/BackupModal.svelte';
 	import UploadModal from '$lib/components/UploadModal.svelte';
 	import TemplateModal from '$lib/components/TemplateModal.svelte';
 	import OnetDrawer from '$lib/components/OnetDrawer.svelte';
@@ -57,6 +60,7 @@
 	let preview = $state<CompiledPreview | null>(null);
 	let isPreviewLoading = $state(false);
 	let uploadOpen = $state(false);
+	let backupOpen = $state(false);
 	let templateOpen = $state(false);
 	let tailorOpen = $state(false);
 	let showReviewBanner = $state(false);
@@ -138,6 +142,14 @@
 		textExportStatus = 'Resume text downloaded.';
 	}
 
+	function applyBackup(backup: ResumeBackup) {
+		resumeStore.set(JSON.parse(JSON.stringify(backup.resume)) as ResumeData);
+		if (backup.occupation) onetStore.select(backup.occupation);
+		else onetStore.clear();
+		resetHighlights();
+		showReviewBanner = false;
+	}
+
 	const tabs = [
 		{ id: 'personal', label: 'Personal' },
 		{ id: 'profile', label: 'Profile' },
@@ -181,6 +193,7 @@
 		onCopyText={copyTextFile}
 		onDownloadText={downloadTextFile}
 		{textExportStatus}
+		onBackup={() => (backupOpen = true)}
 		onUpload={() => (uploadOpen = true)}
 		onTemplate={() => (templateOpen = true)}
 		onTailor={() => (tailorOpen = true)}
@@ -255,6 +268,7 @@
 	</main>
 
 	<AppFooter />
+	<BackupModal bind:open={backupOpen} {data} onRestore={applyBackup} />
 	<UploadModal bind:open={uploadOpen} documentType={data.documentType} onApplied={() => (showReviewBanner = true)} />
 	<TemplateModal bind:open={templateOpen} {data} currentTemplate={customTemplate} />
 </div>

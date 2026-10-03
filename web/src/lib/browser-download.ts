@@ -7,8 +7,14 @@ export function downloadBlob(blob: Blob, filename: string): void {
 	anchor.href = url;
 	anchor.download = filename;
 	anchor.hidden = true;
-	document.body.appendChild(anchor);
-	anchor.click();
-	anchor.remove();
-	setTimeout(() => URL.revokeObjectURL(url), REVOKE_DELAY_MS);
+	try {
+		document.body.appendChild(anchor);
+		anchor.click();
+		setTimeout(() => URL.revokeObjectURL(url), REVOKE_DELAY_MS);
+	} catch (error) {
+		URL.revokeObjectURL(url);
+		throw error;
+	} finally {
+		anchor.remove();
+	}
 }
