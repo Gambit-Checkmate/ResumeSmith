@@ -16,10 +16,13 @@
 		endLabel?: string;
 		presentLabel?: string;
 	} = $props();
+	const uid = $props.id();
 </script>
 
 <div>
-	<label>Start Date</label><input
+	<label for={`${uid}-start-date`}>Start Date</label>
+	<input
+		id={`${uid}-start-date`}
 		type="month"
 		bind:value={startDate}
 		class:ai-filled={aiFilled.has(`${path}.startDate`)}
@@ -27,8 +30,9 @@
 	/>
 </div>
 <div>
-	<label>{endLabel}</label>
+	<label for={`${uid}-end-date`}>{endLabel}</label>
 	<input
+		id={`${uid}-end-date`}
 		type="month"
 		bind:value={endDate}
 		disabled={isPresent}

@@ -3,13 +3,16 @@
 	import { aiFilled, clearHighlight } from '$lib/ai-highlight';
 
 	let { data }: { data: ResumeData } = $props();
+	const uid = $props.id();
 </script>
 
 <div class="space-y-4">
 	<h2 class="text-lg font-semibold">Personal Information</h2>
 	<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 		<div>
-			<label>Full Name</label><input
+			<label for={`${uid}-full-name`}>Full Name</label>
+			<input
+				id={`${uid}-full-name`}
 				type="text"
 				bind:value={data.personalInfo.name}
 				placeholder="John Doe"
@@ -18,7 +21,9 @@
 			/>
 		</div>
 		<div>
-			<label>Email</label><input
+			<label for={`${uid}-email`}>Email</label>
+			<input
+				id={`${uid}-email`}
 				type="email"
 				bind:value={data.personalInfo.email}
 				placeholder="john@example.com"
@@ -27,7 +32,9 @@
 			/>
 		</div>
 		<div>
-			<label>Phone</label><input
+			<label for={`${uid}-phone`}>Phone</label>
+			<input
+				id={`${uid}-phone`}
 				type="tel"
 				bind:value={data.personalInfo.phone}
 				placeholder="(555) 123-4567"
@@ -36,7 +43,9 @@
 			/>
 		</div>
 		<div>
-			<label>Website</label><input
+			<label for={`${uid}-website`}>Website</label>
+			<input
+				id={`${uid}-website`}
 				type="text"
 				bind:value={data.personalInfo.website}
 				placeholder="johndoe.com"
@@ -45,7 +54,9 @@
 			/>
 		</div>
 		<div>
-			<label>LinkedIn Username</label><input
+			<label for={`${uid}-linkedin-username`}>LinkedIn Username</label>
+			<input
+				id={`${uid}-linkedin-username`}
 				type="text"
 				bind:value={data.personalInfo.linkedin}
 				placeholder="johndoe"
@@ -54,7 +65,9 @@
 			/>
 		</div>
 		<div>
-			<label>GitHub Username</label><input
+			<label for={`${uid}-github-username`}>GitHub Username</label>
+			<input
+				id={`${uid}-github-username`}
 				type="text"
 				bind:value={data.personalInfo.github}
 				placeholder="johndoe"

@@ -13,6 +13,7 @@
 	function removeProject(id: string) {
 		data.projects = data.projects.filter((p) => p.id !== id);
 	}
+	const uid = $props.id();
 </script>
 
 <div class="space-y-4">
@@ -24,7 +25,9 @@
 		<EntryCard index={i} onRemove={() => removeProject(project.id)}>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
 				<div>
-					<label>Project Name</label><input
+					<label for={`${uid}-${i}-project-name`}>Project Name</label>
+					<input
+						id={`${uid}-${i}-project-name`}
 						type="text"
 						bind:value={project.name}
 						placeholder="My Project"
@@ -33,7 +36,9 @@
 					/>
 				</div>
 				<div>
-					<label>Tech Stack</label><input
+					<label for={`${uid}-${i}-tech-stack`}>Tech Stack</label>
+					<input
+						id={`${uid}-${i}-tech-stack`}
 						type="text"
 						bind:value={project.stack}
 						placeholder="React, Node.js, PostgreSQL"
@@ -42,7 +47,9 @@
 					/>
 				</div>
 				<div>
-					<label>Award (optional)</label><input
+					<label for={`${uid}-${i}-award-optional`}>Award (optional)</label>
+					<input
+						id={`${uid}-${i}-award-optional`}
 						type="text"
 						bind:value={project.award}
 						placeholder="Hackathon Winner"
@@ -51,7 +58,9 @@
 					/>
 				</div>
 				<div>
-					<label>Project URL</label><input
+					<label for={`${uid}-${i}-project-url`}>Project URL</label>
+					<input
+						id={`${uid}-${i}-project-url`}
 						type="text"
 						bind:value={project.url}
 						placeholder="https://github.com/..."

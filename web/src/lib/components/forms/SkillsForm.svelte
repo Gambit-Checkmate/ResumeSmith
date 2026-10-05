@@ -11,6 +11,7 @@
 	function removeSkillCategory(id: string) {
 		data.skills = data.skills.filter((s) => s.id !== id);
 	}
+	const uid = $props.id();
 </script>
 
 <div class="space-y-4">
@@ -23,7 +24,9 @@
 			<div class="flex gap-3 items-start">
 				<div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
 					<div>
-						<label>Category</label><input
+						<label for={`${uid}-${i}-category`}>Category</label>
+						<input
+							id={`${uid}-${i}-category`}
 							type="text"
 							bind:value={skill.category}
 							placeholder="Languages"
@@ -32,7 +35,9 @@
 						/>
 					</div>
 					<div>
-						<label>Skills</label><input
+						<label for={`${uid}-${i}-skills`}>Skills</label>
+						<input
+							id={`${uid}-${i}-skills`}
 							type="text"
 							bind:value={skill.skills}
 							placeholder="Python, TypeScript, C++"

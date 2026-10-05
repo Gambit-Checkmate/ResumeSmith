@@ -14,6 +14,7 @@
 	function removeClearance(id: string) {
 		data.clearance = data.clearance.filter((c) => c.id !== id);
 	}
+	const uid = $props.id();
 </script>
 
 <div class="space-y-4">
@@ -26,8 +27,9 @@
 			<div class="flex justify-between items-start">
 				<div class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
 					<div>
-						<label>Level</label>
+						<label for={`${uid}-${i}-level`}>Level</label>
 						<select
+							id={`${uid}-${i}-level`}
 							bind:value={clearance.level}
 							class:ai-filled={aiFilled.has(`clearance.${i}.level`)}
 							onchange={() => clearHighlight(`clearance.${i}.level`)}
@@ -38,8 +40,9 @@
 						</select>
 					</div>
 					<div>
-						<label>Status</label>
+						<label for={`${uid}-${i}-status`}>Status</label>
 						<select
+							id={`${uid}-${i}-status`}
 							bind:value={clearance.status}
 							class:ai-filled={aiFilled.has(`clearance.${i}.status`)}
 							onchange={() => clearHighlight(`clearance.${i}.status`)}
@@ -50,8 +53,9 @@
 						</select>
 					</div>
 					<div>
-						<label>Date Granted</label>
+						<label for={`${uid}-${i}-date-granted`}>Date Granted</label>
 						<input
+							id={`${uid}-${i}-date-granted`}
 							type="month"
 							bind:value={clearance.dateGranted}
 							class:ai-filled={aiFilled.has(`clearance.${i}.dateGranted`)}

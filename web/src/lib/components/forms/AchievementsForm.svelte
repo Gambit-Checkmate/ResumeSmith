@@ -11,6 +11,7 @@
 	function removeAchievement(id: string) {
 		data.achievements = data.achievements.filter((a) => a.id !== id);
 	}
+	const uid = $props.id();
 </script>
 
 <div class="space-y-4">
@@ -23,7 +24,9 @@
 			<div class="flex justify-between items-start">
 				<div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
 					<div>
-						<label>Title</label><input
+						<label for={`${uid}-${i}-title`}>Title</label>
+						<input
+							id={`${uid}-${i}-title`}
 							type="text"
 							bind:value={achievement.title}
 							placeholder="AWS Certified Developer"
@@ -32,7 +35,9 @@
 						/>
 					</div>
 					<div>
-						<label>Date</label><input
+						<label for={`${uid}-${i}-date`}>Date</label>
+						<input
+							id={`${uid}-${i}-date`}
 							type="month"
 							bind:value={achievement.date}
 							class:ai-filled={aiFilled.has(`achievements.${i}.date`)}
@@ -43,8 +48,9 @@
 				<button class="danger text-sm px-2 py-1 ml-2" onclick={() => removeAchievement(achievement.id)}>Remove</button>
 			</div>
 			<div>
-				<label>Description</label>
+				<label for={`${uid}-${i}-description`}>Description</label>
 				<textarea
+					id={`${uid}-${i}-description`}
 					bind:value={achievement.description}
 					rows="2"
 					placeholder="Brief description of the achievement or certification..."

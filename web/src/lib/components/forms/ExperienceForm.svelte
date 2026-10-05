@@ -26,6 +26,7 @@
 	function removeWorkExperience(id: string) {
 		data.workExperience = data.workExperience.filter((w) => w.id !== id);
 	}
+	const uid = $props.id();
 </script>
 
 <div class="space-y-4">
@@ -37,7 +38,9 @@
 		<EntryCard index={i} onRemove={() => removeWorkExperience(work.id)}>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
 				<div>
-					<label>Job Title</label><input
+					<label for={`${uid}-${i}-job-title`}>Job Title</label>
+					<input
+						id={`${uid}-${i}-job-title`}
 						type="text"
 						bind:value={work.title}
 						placeholder="Software Engineer"
@@ -46,7 +49,9 @@
 					/>
 				</div>
 				<div>
-					<label>Company</label><input
+					<label for={`${uid}-${i}-company`}>Company</label>
+					<input
+						id={`${uid}-${i}-company`}
 						type="text"
 						bind:value={work.company}
 						placeholder="Company Name"
@@ -55,7 +60,9 @@
 					/>
 				</div>
 				<div class="md:col-span-2">
-					<label>Location</label><input
+					<label for={`${uid}-${i}-location`}>Location</label>
+					<input
+						id={`${uid}-${i}-location`}
 						type="text"
 						bind:value={work.location}
 						placeholder="City, State"

@@ -27,6 +27,7 @@
 	function removeEducation(id: string) {
 		data.education = data.education.filter((e) => e.id !== id);
 	}
+	const uid = $props.id();
 </script>
 
 <div class="space-y-4">
@@ -38,7 +39,9 @@
 		<EntryCard index={i} onRemove={() => removeEducation(edu.id)}>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
 				<div>
-					<label>Institution</label><input
+					<label for={`${uid}-${i}-institution`}>Institution</label>
+					<input
+						id={`${uid}-${i}-institution`}
 						type="text"
 						bind:value={edu.institution}
 						placeholder="University Name"
@@ -47,7 +50,9 @@
 					/>
 				</div>
 				<div>
-					<label>Location</label><input
+					<label for={`${uid}-${i}-location`}>Location</label>
+					<input
+						id={`${uid}-${i}-location`}
 						type="text"
 						bind:value={edu.location}
 						placeholder="City, State"
@@ -56,7 +61,9 @@
 					/>
 				</div>
 				<div>
-					<label>Degree</label><input
+					<label for={`${uid}-${i}-degree`}>Degree</label>
+					<input
+						id={`${uid}-${i}-degree`}
 						type="text"
 						bind:value={edu.degree}
 						placeholder="Bachelor of Sciences"
@@ -65,7 +72,9 @@
 					/>
 				</div>
 				<div>
-					<label>Major</label><input
+					<label for={`${uid}-${i}-major`}>Major</label>
+					<input
+						id={`${uid}-${i}-major`}
 						type="text"
 						bind:value={edu.major}
 						placeholder="Computer Science"

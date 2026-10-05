@@ -7,6 +7,7 @@
 	function resetColorSettings() {
 		data.colors = { ...defaultResumeData.colors };
 	}
+	const uid = $props.id();
 </script>
 
 <div class="space-y-4">
@@ -16,28 +17,36 @@
 	</div>
 	<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 		<div>
-			<label>Header Color</label><input
+			<label for={`${uid}-header-color`}>Header Color</label>
+			<input
+				id={`${uid}-header-color`}
 				type="color"
 				bind:value={data.colors.headColor}
 				class="w-full h-10 p-1 rounded cursor-pointer"
 			/>
 		</div>
 		<div>
-			<label>Text Color</label><input
+			<label for={`${uid}-text-color`}>Text Color</label>
+			<input
+				id={`${uid}-text-color`}
 				type="color"
 				bind:value={data.colors.textColor}
 				class="w-full h-10 p-1 rounded cursor-pointer"
 			/>
 		</div>
 		<div>
-			<label>Accent Color</label><input
+			<label for={`${uid}-accent-color`}>Accent Color</label>
+			<input
+				id={`${uid}-accent-color`}
 				type="color"
 				bind:value={data.colors.accentColor}
 				class="w-full h-10 p-1 rounded cursor-pointer"
 			/>
 		</div>
 		<div>
-			<label>Link Color</label><input
+			<label for={`${uid}-link-color`}>Link Color</label>
+			<input
+				id={`${uid}-link-color`}
 				type="color"
 				bind:value={data.colors.linkColor}
 				class="w-full h-10 p-1 rounded cursor-pointer"
