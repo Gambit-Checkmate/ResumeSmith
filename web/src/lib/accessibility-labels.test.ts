@@ -18,3 +18,11 @@ describe('form labels', () => {
 		},
 	);
 });
+
+describe('header', () => {
+	it('compiles without accessibility warnings', () => {
+		const file = resolve(components, 'AppHeader.svelte');
+		const result = compile(readFileSync(file, 'utf8'), { filename: file, generate: false });
+		expect(result.warnings.filter((warning) => warning.code.startsWith('a11y_'))).toEqual([]);
+	});
+});

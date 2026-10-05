@@ -1,7 +1,9 @@
 <!--
-	Single row so the footer stays short enough for the viewport-locked layout in
-	+page.svelte. The O*NET badge and credit line are required attribution using
-	the official markup: do not reword the text or restyle the badge.
+	The footer stays short on desktop so the viewport-locked layout in +page.svelte keeps its height: attribution on
+	the left, credits on the right. Below lg the two groups stack so nothing overflows a phone viewport.
+
+	The O*NET badge and credit line are required attribution using the official markup: do not reword the text or
+	restyle the badge.
 
 	The badge is served from static/ rather than hotlinked from onetcenter.org.
 	vercel.json sets Cross-Origin-Embedder-Policy: require-corp (the Typst WASM
@@ -9,17 +11,29 @@
 	subresource must send Cross-Origin-Resource-Policy. O*NET's server does not,
 	so the hotlinked badge is blocked in production while working fine in dev.
 -->
+<script lang="ts">
+	// Applied through the snippet so every external link looks alike; the GitHub call to action adds one accent.
+	const linkClass =
+		'rounded-sm text-gray-600 underline decoration-gray-300 underline-offset-2 hover:text-gray-900 hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600';
+	const accentClass =
+		'rounded-sm font-medium text-blue-700 underline decoration-blue-200 underline-offset-2 hover:text-blue-900 hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600';
+</script>
+
+{#snippet external(href: string, label: string, accent = false)}
+	<a {href} target="_blank" rel="noopener noreferrer" class="footer-link {accent ? accentClass : linkClass}">{label}</a>
+{/snippet}
+
 <footer class="bg-white border-t border-gray-200 mt-auto">
 	<div
-		class="max-w-7xl mx-auto px-4 py-2 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 text-[11px] leading-tight text-gray-500"
+		class="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8 lg:py-2 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-8 text-[11px] leading-snug text-gray-500"
 	>
-		<div class="flex items-center gap-3">
+		<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
 			<a
 				href="https://services.onetcenter.org/"
 				target="_blank"
 				rel="noopener noreferrer"
 				title="This site incorporates information from O*NET Web Services. Click to learn more."
-				class="shrink-0"
+				class="shrink-0 self-start rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
 			>
 				<img
 					src="/onet-in-it.svg"
@@ -32,47 +46,43 @@
 			</a>
 			<p class="max-w-2xl">
 				This site incorporates information from
-				<a
-					href="https://services.onetcenter.org/"
-					target="_blank"
-					rel="noopener noreferrer"
-					class="hover:text-gray-700 underline">O*NET Web Services</a
-				>
+				{@render external('https://services.onetcenter.org/', 'O*NET Web Services')}
 				by the U.S. Department of Labor, Employment and Training Administration (USDOL/ETA). O*NET&reg; is a trademark of
 				USDOL/ETA. O*NET Web Services Data License by U.S. Department of Labor, Employment and Training Administration is
 				licensed under a
-				<a
-					href="https://creativecommons.org/licenses/by/4.0/"
-					target="_blank"
-					rel="noopener noreferrer"
-					class="hover:text-gray-700 underline">Creative Commons Attribution 4.0 International License</a
-				>.
+				{@render external(
+					'https://creativecommons.org/licenses/by/4.0/',
+					'Creative Commons Attribution 4.0 International License',
+				)}.
 			</p>
 		</div>
 
-		<div class="shrink-0 space-y-1">
+		<div
+			class="flex flex-wrap items-baseline gap-x-4 gap-y-1 [&_a]:whitespace-nowrap border-t border-gray-100 pt-3 lg:flex-col lg:items-end lg:gap-x-0 lg:border-t-0 lg:border-l lg:border-gray-200 lg:pt-0 lg:shrink-0 lg:pl-6 lg:text-right"
+		>
 			<p>
 				{new Date().getFullYear()} ResumeSmith -
-				<a href="https://asternberg.xyz" target="_blank" rel="noopener noreferrer" class="hover:text-gray-700"
-					>Austin Sternberg</a
-				>
+				{@render external('https://asternberg.xyz', 'Austin Sternberg')}
 				&middot;
-				<a href="https://typst.app" target="_blank" rel="noopener noreferrer" class="hover:text-gray-700">Typst</a>
+				{@render external('https://typst.app', 'Typst')}
 				Layout by
-				<a href="https://monster0506.dev/" target="_blank" rel="noopener noreferrer" class="hover:text-gray-700"
-					>TJ Raklovits</a
-				>
+				{@render external('https://monster0506.dev/', 'TJ Raklovits')}
 			</p>
 			<p>Version: {__APP_VERSION__}</p>
 			<p>
 				Missing something?
-				<a
-					href="https://github.com/YoyoJesus/ResumeSmith"
-					target="_blank"
-					rel="noopener noreferrer"
-					class="font-medium text-blue-600 underline hover:text-blue-800">Contribute on GitHub</a
-				>
+				{@render external('https://github.com/YoyoJesus/ResumeSmith', 'Contribute on GitHub', true)}
 			</p>
 		</div>
 	</div>
 </footer>
+
+<style>
+	@media (prefers-reduced-motion: no-preference) {
+		.footer-link {
+			transition:
+				color 140ms ease-out,
+				text-decoration-color 140ms ease-out;
+		}
+	}
+</style>
