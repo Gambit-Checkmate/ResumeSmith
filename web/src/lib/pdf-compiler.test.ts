@@ -2,11 +2,12 @@ import { beforeEach, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => {
 	const session = {
-		renderSvg: vi.fn().mockResolvedValue('<svg class="typst-doc"></svg>'),
-		retrievePagesInfo: vi.fn().mockReturnValue([
-			{ pageOffset: 0, width: 595, height: 842 },
-			{ pageOffset: 1, width: 595, height: 842 },
-		]),
+		renderSvg: vi
+			.fn()
+			.mockResolvedValue(
+				'<svg class="typst-doc"><g class="typst-page" data-page-width="595" data-page-height="842"></g><g class="typst-page" data-page-width="612.5" data-page-height="792"></g></svg>',
+			),
+		retrievePagesInfo: vi.fn(),
 	};
 	return {
 		pdf: vi.fn().mockResolvedValue(new Uint8Array([1])),
@@ -41,14 +42,14 @@ beforeEach(() => {
 	setDocumentFonts([]);
 });
 
-it('returns each page reported by the renderer with the compiled SVG', async () => {
+it('reads each page size from the rendered SVG without creating PageInfo handles', async () => {
 	const preview = await compileToPreview('#pagebreak()');
 
 	expect(preview).toEqual({
-		svg: '<svg class="typst-doc"></svg>',
+		svg: '<svg class="typst-doc"><g class="typst-page" data-page-width="595" data-page-height="842"></g><g class="typst-page" data-page-width="612.5" data-page-height="792"></g></svg>',
 		pages: [
 			{ pageOffset: 0, width: 595, height: 842 },
-			{ pageOffset: 1, width: 595, height: 842 },
+			{ pageOffset: 1, width: 612.5, height: 792 },
 		],
 	});
 	expect(mocks.vector).toHaveBeenCalledWith({ mainContent: '#pagebreak()' });
@@ -56,6 +57,24 @@ it('returns each page reported by the renderer with the compiled SVG', async () 
 		{ format: 'vector', artifactContent: new Uint8Array([2]) },
 		expect.any(Function),
 	);
+	expect(mocks.session.retrievePagesInfo).not.toHaveBeenCalled();
+});
+
+it('does not create PageInfo handles across repeated multi-page previews', async () => {
+	for (let i = 0; i < 5; i++) {
+		await expect(compileToPreview(`Revision ${i}`)).resolves.toHaveProperty('pages.length', 2);
+	}
+	expect(mocks.session.retrievePagesInfo).not.toHaveBeenCalled();
+});
+
+it.each([
+	'<svg class="typst-doc"></svg>',
+	'<svg><g class="typst-page" data-page-width="595"></g></svg>',
+	'<svg><g class="typst-page" data-page-width="0" data-page-height="842"></g></svg>',
+])('rejects preview SVG without valid page metadata', async (svg) => {
+	mocks.session.renderSvg.mockResolvedValueOnce(svg);
+	await expect(compileToPreview('Hello')).rejects.toThrow(/page|pages/);
+	expect(mocks.session.retrievePagesInfo).not.toHaveBeenCalled();
 });
 
 it('builds the default compiler without downloading web fonts', async () => {
