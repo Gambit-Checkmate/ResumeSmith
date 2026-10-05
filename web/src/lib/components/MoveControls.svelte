@@ -14,8 +14,10 @@
 	async function move(direction: MoveDirection) {
 		onMove(direction);
 		await tick();
-		// The clicked direction can become disabled at the new boundary.
-		(direction === -1 ? downButton : upButton).focus();
+		const clickedButton = direction === -1 ? upButton : downButton;
+		const oppositeButton = direction === -1 ? downButton : upButton;
+		// Keep repeated keyboard moves going in the same direction until the boundary.
+		(clickedButton.disabled ? oppositeButton : clickedButton).focus();
 	}
 </script>
 
