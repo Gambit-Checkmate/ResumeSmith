@@ -140,9 +140,9 @@
 				<button class="secondary px-2 py-1 text-sm" onclick={close} disabled={reading}>Close</button>
 			</div>
 			<p class="text-sm text-gray-700">
-				Backups contain personal resume information. Keep the JSON file private. Downloads and restores stay in this
-				browser and do not use AI or a network request. Custom templates and CV bibliography files are not included; the
-				current session template remains active after restore.
+				Backups contain personal information. Keep the JSON file private. Download and restore happen in this browser,
+				without AI or network requests. Backups exclude custom templates and CV bibliography files. Your current session
+				template stays active after restore.
 			</p>
 			<button class="secondary" onclick={downloadCurrent}>Download current data</button>
 			<div>
@@ -166,8 +166,7 @@
 					<p>Selected occupation: {pending.occupation?.title ?? 'None'}</p>
 				</div>
 				<p class="text-sm text-gray-700">
-					Restoring replaces the current resume and selected occupation. Download the current data first if you want to
-					keep it.
+					Restore replaces the current resume and selected occupation. Download your current data first to keep it.
 				</p>
 				<button class="danger" onclick={restore}>Restore and replace current data</button>
 			{/if}

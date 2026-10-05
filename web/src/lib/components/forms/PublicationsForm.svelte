@@ -12,7 +12,7 @@
 	} from '$lib/bibliography';
 	import { bibliographyStore, validateBibliography } from '$lib/bibliography-store';
 	import { moveWithHighlights } from '$lib/reorder';
-	import MoveControls from '../MoveControls.svelte';
+	import EntryCard from '../EntryCard.svelte';
 
 	let { data }: { data: ResumeData } = $props();
 
@@ -73,34 +73,38 @@
 	}
 </script>
 
-<div class="space-y-4">
-	<div class="flex items-center justify-between">
-		<h2 class="text-lg font-semibold">Publications</h2>
-		<button class="primary text-sm" onclick={addPublication}>+ Add publication</button>
+<div class="editor-form">
+	<div class="editor-heading">
+		<h2>Publications</h2>
+		<button class="primary editor-add" onclick={addPublication}>+ Add publication</button>
 	</div>
-	<div>
-		<label for="publication-author-name">Your name in author lists</label>
-		<input
-			id="publication-author-name"
-			type="text"
-			bind:value={data.publicationAuthorName}
-			placeholder="Doe, J."
-			aria-describedby="publication-author-name-help"
-		/>
-		<p id="publication-author-name-help" class="mt-1 text-xs text-gray-500">
-			Written exactly as in your author lists. It is shown in bold wherever it appears.
-		</p>
+	<div class="editor-card">
+		<div>
+			<label for="publication-author-name">Your name in author lists</label>
+			<input
+				id="publication-author-name"
+				type="text"
+				bind:value={data.publicationAuthorName}
+				placeholder="Doe, J."
+				aria-describedby="publication-author-name-help"
+			/>
+			<p id="publication-author-name-help" class="mt-1 text-xs text-gray-500">
+				Enter your name as it appears in author lists. It will be bolded.
+			</p>
+		</div>
 	</div>
 	{#if data.documentType === 'cv'}
-		<div class="rounded-lg border p-4 space-y-2">
-			<h3 class="font-medium">BibTeX file (optional)</h3>
-			<p class="text-xs text-gray-500">
-				Every entry is listed after the publications below. The file stays in this browser and is never sent to AI. Up
-				to {MAX_BIBLIOGRAPHY_LABEL}.
-			</p>
+		<div class="editor-card">
+			<div>
+				<h3 class="text-sm font-semibold text-gray-900">BibTeX file (optional)</h3>
+				<p class="editor-description mt-1 text-xs">
+					Entries appear after the publications below. The file stays in this browser and is never sent to AI. Max
+					{MAX_BIBLIOGRAPHY_LABEL}.
+				</p>
+			</div>
 			{#if $bibliographyStore}
-				<div class="flex flex-wrap items-end gap-2">
-					<p class="min-w-0 flex-1 truncate text-sm">
+				<div class="flex flex-wrap items-end gap-x-3 gap-y-2">
+					<p class="min-w-0 flex-1 basis-40 truncate text-sm">
 						<span class="text-gray-500">Using</span> <span class="font-medium">{$bibliographyStore.name}</span>
 					</p>
 					<div>
@@ -115,15 +119,19 @@
 							{/each}
 						</select>
 					</div>
-					<button class="secondary text-sm" onclick={() => bibInput?.click()} disabled={bibStatus === 'checking'}
-						>Replace</button
-					>
-					<button class="danger text-sm" onclick={() => bibliographyStore.clear()}>Remove</button>
+					<div class="flex gap-2">
+						<button class="editor-action" onclick={() => bibInput?.click()} disabled={bibStatus === 'checking'}
+							>Replace</button
+						>
+						<button class="editor-action-danger" onclick={() => bibliographyStore.clear()}>Remove</button>
+					</div>
 				</div>
 			{:else}
-				<button class="secondary text-sm" onclick={() => bibInput?.click()} disabled={bibStatus === 'checking'}>
-					{bibStatus === 'checking' ? 'Checking...' : 'Add a .bib file'}
-				</button>
+				<div>
+					<button class="editor-action" onclick={() => bibInput?.click()} disabled={bibStatus === 'checking'}>
+						{bibStatus === 'checking' ? 'Checking...' : 'Add a .bib file'}
+					</button>
+				</div>
 			{/if}
 			<input bind:this={bibInput} type="file" accept=".bib" class="hidden" onchange={onPickBibliography} />
 			{#if bibError}<p class="text-sm text-red-600" role="alert">{bibError}</p>{/if}
@@ -131,9 +139,15 @@
 	{/if}
 	{#each data.publications as publication, i (publication.id)}
 		{@const id = `publication-${publication.id}`}
-		<div class="border rounded-lg p-4 space-y-3 bg-gray-50">
-			<div class="flex justify-between items-start gap-2">
-				<div class="flex-1">
+		<EntryCard
+			index={i}
+			count={data.publications.length}
+			label={`publication ${i + 1}`}
+			onMove={(direction) => (data.publications = moveWithHighlights(data.publications, 'publications', i, direction))}
+			onRemove={() => removePublication(publication.id)}
+		>
+			<div class="editor-grid">
+				<div class="editor-span">
 					<label for="{id}-title">Title</label><input
 						id="{id}-title"
 						type="text"
@@ -143,18 +157,6 @@
 						oninput={() => clearHighlight(`publications.${i}.title`)}
 					/>
 				</div>
-				<div class="mt-6 flex items-center gap-2">
-					<MoveControls
-						index={i}
-						count={data.publications.length}
-						label={`publication ${i + 1}`}
-						onMove={(direction) =>
-							(data.publications = moveWithHighlights(data.publications, 'publications', i, direction))}
-					/>
-					<button class="danger text-sm px-2 py-1" onclick={() => removePublication(publication.id)}>Remove</button>
-				</div>
-			</div>
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
 				<div>
 					<label for="{id}-authors">Authors</label><input
 						id="{id}-authors"
@@ -192,7 +194,7 @@
 						{/each}
 					</select>
 				</div>
-				<div class="grid grid-cols-3 gap-2 md:col-span-2">
+				<div class="editor-span grid grid-cols-3 gap-3">
 					<div>
 						<label for="{id}-volume">Volume</label><input
 							id="{id}-volume"
@@ -252,7 +254,7 @@
 					/>
 				</div>
 			</div>
-		</div>
+		</EntryCard>
 	{/each}
-	{#if data.publications.length === 0}<p class="text-gray-500 text-center py-8">No publications added yet.</p>{/if}
+	{#if data.publications.length === 0}<p class="editor-empty">No publications added yet.</p>{/if}
 </div>

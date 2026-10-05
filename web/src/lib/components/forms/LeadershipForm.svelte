@@ -30,10 +30,10 @@
 	const uid = $props.id();
 </script>
 
-<div class="space-y-4">
-	<div class="flex items-center justify-between">
-		<h2 class="text-lg font-semibold">Leadership</h2>
-		<button class="primary text-sm" onclick={addLeadership}>+ Add role</button>
+<div class="editor-form">
+	<div class="editor-heading">
+		<h2>Leadership</h2>
+		<button class="primary editor-add" onclick={addLeadership}>+ Add role</button>
 	</div>
 	{#each data.leadership as lead, i (lead.id)}
 		<EntryCard
@@ -43,7 +43,7 @@
 			onMove={(direction) => (data.leadership = moveWithHighlights(data.leadership, 'leadership', i, direction))}
 			onRemove={() => removeLeadership(lead.id)}
 		>
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+			<div class="editor-grid">
 				<div>
 					<label for={`${uid}-${i}-title`}>Title</label>
 					<input
@@ -66,7 +66,7 @@
 						oninput={() => clearHighlight(`leadership.${i}.organization`)}
 					/>
 				</div>
-				<div class="md:col-span-2">
+				<div class="editor-span">
 					<label for={`${uid}-${i}-location`}>Location</label>
 					<input
 						id={`${uid}-${i}-location`}
@@ -93,5 +93,5 @@
 			/>
 		</EntryCard>
 	{/each}
-	{#if data.leadership.length === 0}<p class="text-gray-500 text-center py-8">No leadership roles added yet.</p>{/if}
+	{#if data.leadership.length === 0}<p class="editor-empty">No leadership roles added yet.</p>{/if}
 </div>

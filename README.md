@@ -23,7 +23,7 @@ ResumeSmith is a privacy-conscious resume builder for forging polished, job-read
 
 ## Privacy and upload behavior
 
-Resume files are processed in the browser first. The upload gate shows extraction method, page and word counts, text quality, OCR confidence when applicable, and a text preview. The user must explicitly consent before the extracted text and its metrics are sent to `/api/extract`; the original file is not uploaded to that endpoint.
+Resume files are processed in the browser first. The upload gate shows extraction method, page and word counts, text quality, OCR confidence when applicable, and a text preview. Clicking **Send to AI and fill in my resume/CV** provides explicit consent to send the extracted text and its metrics to `/api/extract`; the original file is not uploaded to that endpoint. There is no separate consent checkbox.
 
 Current resume-upload limits are:
 
@@ -34,7 +34,7 @@ Current resume-upload limits are:
 
 An academic CV import splits the extracted text in the browser into parts of about 10,000 characters, breaking at section headings where it can, and sends them to `/api/extract` one at a time after the same consent step. The server accepts at most 12,000 characters per part and 16 parts per document, and uses a separate CV schema, so resume extraction requests are unchanged. Each part counts toward the AI rate limit below; the browser waits for `Retry-After` when it is reached. If a part fails, the parts that succeeded are kept and you can retry only the failed parts or continue without them.
 
-Resume data (including the document type), the selected O\*NET occupation, and an optional CV BibTeX file (up to 256 KB) are stored in browser `localStorage`. The BibTeX file is never sent to the server or to AI; it is compiled in the browser and rejected if Typst cannot read it. Custom templates are stored in `sessionStorage`, take precedence over the built-in template, and are removed when that browser session ends or the user resets the template.
+Resume data (including the document type), the selected O\*NET occupation, and an optional CV BibTeX file (up to 256 KB) are stored in browser `localStorage`. The BibTeX file is never sent to the server or to AI; it is compiled in the browser and rejected if Typst cannot read it. Custom templates are stored in `sessionStorage`, take precedence over the built-in template, and are removed when that browser session ends or the user resets the template. Use **More → Your data → Delete saved data** to remove ResumeSmith's saved resume/CV, occupation, bibliography, and custom templates from this browser; other sites' storage on the same origin is left alone. The editor resets to a blank resume, and future edits are saved again.
 
 The Typst compiler downloads its built-in fonts from jsDelivr. Web fonts (Carlito, Lato, Open Sans, Roboto) are downloaded from the Fontsource CDN on jsDelivr only when selected in the Fonts tab.
 

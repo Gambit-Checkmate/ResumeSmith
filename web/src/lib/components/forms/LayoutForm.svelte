@@ -1,15 +1,13 @@
 <script lang="ts">
 	import type { ResumeData } from '$lib/types';
 	import { sectionLabel, defaultSectionOrder, customSectionKey } from '$lib/types';
+	import { moveAt, type MoveDirection } from '$lib/reorder';
+	import MoveControls from '$lib/components/MoveControls.svelte';
 
 	let { data }: { data: ResumeData } = $props();
 
-	function moveSection(index: number, direction: 'up' | 'down') {
-		const newOrder = [...data.sectionOrder];
-		const targetIndex = direction === 'up' ? index - 1 : index + 1;
-		if (targetIndex < 0 || targetIndex >= newOrder.length) return;
-		[newOrder[index], newOrder[targetIndex]] = [newOrder[targetIndex], newOrder[index]];
-		data.sectionOrder = newOrder;
+	function moveSection(index: number, direction: MoveDirection) {
+		data.sectionOrder = moveAt(data.sectionOrder, index, direction);
 	}
 
 	function resetSectionOrder() {
@@ -17,40 +15,25 @@
 	}
 </script>
 
-<div class="space-y-4">
-	<div class="flex items-center justify-between">
-		<h2 class="text-lg font-semibold">Section Order</h2>
-		<button class="secondary text-sm" onclick={resetSectionOrder}>Reset to Default</button>
+<div class="editor-form">
+	<div class="editor-heading">
+		<h2>Section Order</h2>
+		<button type="button" class="editor-action" onclick={resetSectionOrder}>Reset to Default</button>
 	</div>
-	<p class="text-sm text-gray-600">Use the arrows to reorder sections.</p>
-	<div class="space-y-2">
-		{#each data.sectionOrder as sectionId, i}
-			<div class="flex items-center gap-3 bg-gray-50 border rounded-lg p-3">
-				<div class="flex flex-col gap-1">
-					<button
-						class="p-1 rounded hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed"
-						onclick={() => moveSection(i, 'up')}
-						disabled={i === 0}
-						aria-label="Move section up"
-					>
-						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-							><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg
-						>
-					</button>
-					<button
-						class="p-1 rounded hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed"
-						onclick={() => moveSection(i, 'down')}
-						disabled={i === data.sectionOrder.length - 1}
-						aria-label="Move section down"
-					>
-						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-							><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg
-						>
-					</button>
-				</div>
-				<span class="font-medium flex-1">{sectionLabel(sectionId, data.customSections)}</span>
-				<span class="text-sm text-gray-400">#{i + 1}</span>
-			</div>
+	<p class="editor-description">Use the arrows to reorder sections.</p>
+	<ol class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white" aria-label="Section order">
+		{#each data.sectionOrder as sectionId, i (sectionId)}
+			{@const label = sectionLabel(sectionId, data.customSections)}
+			<li class="flex items-center gap-3 px-3 py-2">
+				<span class="w-5 shrink-0 text-right text-xs tabular-nums text-gray-400" aria-hidden="true">{i + 1}</span>
+				<span class="min-w-0 flex-1 truncate text-sm font-medium text-gray-900">{label}</span>
+				<MoveControls
+					index={i}
+					count={data.sectionOrder.length}
+					{label}
+					onMove={(direction) => moveSection(i, direction)}
+				/>
+			</li>
 		{/each}
-	</div>
+	</ol>
 </div>

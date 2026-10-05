@@ -5,7 +5,7 @@
 	import { aiFilled, clearHighlight } from '$lib/ai-highlight';
 	import { moveWithHighlights } from '$lib/reorder';
 	import BulletEditor from '../BulletEditor.svelte';
-	import MoveControls from '../MoveControls.svelte';
+	import EntryCard from '../EntryCard.svelte';
 
 	let { data }: { data: ResumeData } = $props();
 
@@ -31,19 +31,18 @@
 	}
 </script>
 
-<div class="space-y-4">
-	<div class="flex items-center justify-between">
-		<h2 class="text-lg font-semibold">Custom Sections</h2>
-		<button class="primary text-sm" onclick={addSection}>+ Add section</button>
+<div class="editor-form">
+	<div class="editor-heading">
+		<h2>Custom Sections</h2>
+		<button class="primary editor-add" onclick={addSection}>+ Add section</button>
 	</div>
-	<p class="text-sm text-gray-600">
-		Name a section yourself, such as Grants, Teaching, Talks, or Service, and fill it with entries. Reorder sections in
-		the Layout tab.
+	<p class="editor-description">
+		Add a section such as Grants, Teaching, Talks, or Service, then add entries. Reorder sections in the Layout tab.
 	</p>
 	{#each data.customSections as section, si (section.id)}
-		<div class="border rounded-lg p-4 space-y-3 bg-gray-50">
-			<div class="flex justify-between items-end gap-2">
-				<div class="flex-1">
+		<div class="editor-section">
+			<div class="flex flex-wrap items-end gap-x-3 gap-y-2">
+				<div class="min-w-0 flex-1 basis-48">
 					<label for="custom-{section.id}-heading">Section heading</label>
 					<input
 						id="custom-{section.id}-heading"
@@ -54,13 +53,24 @@
 						oninput={() => clearHighlight(`customSections.${si}.heading`)}
 					/>
 				</div>
-				<button class="danger text-sm px-2 py-1" onclick={() => removeSection(section.id)}>Remove section</button>
+				<button
+					class="editor-action-danger"
+					aria-label={`Remove section ${section.heading || 'custom section'}`}
+					onclick={() => removeSection(section.id)}>Remove section</button
+				>
 			</div>
 			{#each section.entries as entry, ei (entry.id)}
 				{@const path = `customSections.${si}.entries.${ei}`}
-				<div class="border rounded-md bg-white p-3 space-y-3">
-					<div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-						<div class="md:col-span-2">
+				<EntryCard
+					index={ei}
+					count={section.entries.length}
+					label={`entry ${ei + 1} in ${section.heading || 'custom section'}`}
+					onMove={(direction) =>
+						(section.entries = moveWithHighlights(section.entries, `customSections.${si}.entries`, ei, direction))}
+					onRemove={() => removeEntry(si, entry.id)}
+				>
+					<div class="editor-grid editor-grid-wide">
+						<div>
 							<label for="custom-{entry.id}-title">Title</label>
 							<input
 								id="custom-{entry.id}-title"
@@ -84,27 +94,13 @@
 						</div>
 					</div>
 					<BulletEditor bind:bullets={entry.bullets} label="Details" path={`${path}.bullets`} />
-					<div class="flex justify-end">
-						<div class="flex items-center gap-2">
-							<MoveControls
-								index={ei}
-								count={section.entries.length}
-								label={`entry ${ei + 1} in ${section.heading || 'custom section'}`}
-								onMove={(direction) =>
-									(section.entries = moveWithHighlights(
-										section.entries,
-										`customSections.${si}.entries`,
-										ei,
-										direction,
-									))}
-							/>
-							<button class="danger text-xs px-2 py-1" onclick={() => removeEntry(si, entry.id)}>Remove entry</button>
-						</div>
-					</div>
-				</div>
+				</EntryCard>
 			{/each}
-			<button class="secondary text-sm" onclick={() => addEntry(si)}>+ Add entry</button>
+			{#if section.entries.length === 0}<p class="editor-empty">No entries in this section yet.</p>{/if}
+			<div>
+				<button class="editor-action" onclick={() => addEntry(si)}>+ Add entry</button>
+			</div>
 		</div>
 	{/each}
-	{#if data.customSections.length === 0}<p class="text-gray-500 text-center py-8">No custom sections added yet.</p>{/if}
+	{#if data.customSections.length === 0}<p class="editor-empty">No custom sections added yet.</p>{/if}
 </div>

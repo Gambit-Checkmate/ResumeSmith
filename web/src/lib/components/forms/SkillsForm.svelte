@@ -3,7 +3,7 @@
 	import { generateId } from '$lib/resume-utils';
 	import { aiFilled, clearHighlight } from '$lib/ai-highlight';
 	import { moveWithHighlights } from '$lib/reorder';
-	import MoveControls from '../MoveControls.svelte';
+	import EntryCard from '../EntryCard.svelte';
 
 	let { data }: { data: ResumeData } = $props();
 
@@ -16,49 +16,44 @@
 	const uid = $props.id();
 </script>
 
-<div class="space-y-4">
-	<div class="flex items-center justify-between">
-		<h2 class="text-lg font-semibold">Skills</h2>
-		<button class="primary text-sm" onclick={addSkillCategory}>+ Add category</button>
+<div class="editor-form">
+	<div class="editor-heading">
+		<h2>Skills</h2>
+		<button class="primary editor-add" onclick={addSkillCategory}>+ Add category</button>
 	</div>
 	{#each data.skills as skill, i (skill.id)}
-		<div class="border rounded-lg p-4 bg-gray-50">
-			<div class="flex gap-3 items-start">
-				<div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
-					<div>
-						<label for={`${uid}-${i}-category`}>Category</label>
-						<input
-							id={`${uid}-${i}-category`}
-							type="text"
-							bind:value={skill.category}
-							placeholder="Languages"
-							class:ai-filled={aiFilled.has(`skills.${i}.category`)}
-							oninput={() => clearHighlight(`skills.${i}.category`)}
-						/>
-					</div>
-					<div>
-						<label for={`${uid}-${i}-skills`}>Skills</label>
-						<input
-							id={`${uid}-${i}-skills`}
-							type="text"
-							bind:value={skill.skills}
-							placeholder="Python, TypeScript, C++"
-							class:ai-filled={aiFilled.has(`skills.${i}.skills`)}
-							oninput={() => clearHighlight(`skills.${i}.skills`)}
-						/>
-					</div>
-				</div>
-				<div class="flex items-center gap-2">
-					<MoveControls
-						index={i}
-						count={data.skills.length}
-						label={`skill category ${i + 1}`}
-						onMove={(direction) => (data.skills = moveWithHighlights(data.skills, 'skills', i, direction))}
+		<EntryCard
+			index={i}
+			count={data.skills.length}
+			label={`skill category ${i + 1}`}
+			onMove={(direction) => (data.skills = moveWithHighlights(data.skills, 'skills', i, direction))}
+			onRemove={() => removeSkillCategory(skill.id)}
+		>
+			<div class="editor-grid">
+				<div>
+					<label for={`${uid}-${i}-category`}>Category</label>
+					<input
+						id={`${uid}-${i}-category`}
+						type="text"
+						bind:value={skill.category}
+						placeholder="Languages"
+						class:ai-filled={aiFilled.has(`skills.${i}.category`)}
+						oninput={() => clearHighlight(`skills.${i}.category`)}
 					/>
-					<button class="danger text-sm px-2 py-1" onclick={() => removeSkillCategory(skill.id)}>Remove</button>
+				</div>
+				<div>
+					<label for={`${uid}-${i}-skills`}>Skills</label>
+					<input
+						id={`${uid}-${i}-skills`}
+						type="text"
+						bind:value={skill.skills}
+						placeholder="Python, TypeScript, C++"
+						class:ai-filled={aiFilled.has(`skills.${i}.skills`)}
+						oninput={() => clearHighlight(`skills.${i}.skills`)}
+					/>
 				</div>
 			</div>
-		</div>
+		</EntryCard>
 	{/each}
-	{#if data.skills.length === 0}<p class="text-gray-500 text-center py-8">No skills added yet.</p>{/if}
+	{#if data.skills.length === 0}<p class="editor-empty">No skills added yet.</p>{/if}
 </div>

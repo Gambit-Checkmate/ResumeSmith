@@ -3,7 +3,7 @@
 	import { generateId } from '$lib/resume-utils';
 	import { aiFilled, clearHighlight } from '$lib/ai-highlight';
 	import { moveWithHighlights } from '$lib/reorder';
-	import MoveControls from '../MoveControls.svelte';
+	import EntryCard from '../EntryCard.svelte';
 
 	let { data }: { data: ResumeData } = $props();
 
@@ -19,63 +19,58 @@
 	const uid = $props.id();
 </script>
 
-<div class="space-y-4">
-	<div class="flex items-center justify-between">
-		<h2 class="text-lg font-semibold">Clearance</h2>
-		<button class="primary text-sm" onclick={addClearance}>+ Add clearance</button>
+<div class="editor-form">
+	<div class="editor-heading">
+		<h2>Clearance</h2>
+		<button class="primary editor-add" onclick={addClearance}>+ Add clearance</button>
 	</div>
 	{#each data.clearance as clearance, i (clearance.id)}
-		<div class="border rounded-lg p-4 space-y-3 bg-gray-50">
-			<div class="flex justify-between items-start">
-				<div class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
-					<div>
-						<label for={`${uid}-${i}-level`}>Level</label>
-						<select
-							id={`${uid}-${i}-level`}
-							bind:value={clearance.level}
-							class:ai-filled={aiFilled.has(`clearance.${i}.level`)}
-							onchange={() => clearHighlight(`clearance.${i}.level`)}
-						>
-							{#each LEVELS as level}
-								<option value={level}>{level}</option>
-							{/each}
-						</select>
-					</div>
-					<div>
-						<label for={`${uid}-${i}-status`}>Status</label>
-						<select
-							id={`${uid}-${i}-status`}
-							bind:value={clearance.status}
-							class:ai-filled={aiFilled.has(`clearance.${i}.status`)}
-							onchange={() => clearHighlight(`clearance.${i}.status`)}
-						>
-							{#each STATUSES as status}
-								<option value={status}>{status}</option>
-							{/each}
-						</select>
-					</div>
-					<div>
-						<label for={`${uid}-${i}-date-granted`}>Date Granted</label>
-						<input
-							id={`${uid}-${i}-date-granted`}
-							type="month"
-							bind:value={clearance.dateGranted}
-							class:ai-filled={aiFilled.has(`clearance.${i}.dateGranted`)}
-							oninput={() => clearHighlight(`clearance.${i}.dateGranted`)}
-						/>
-					</div>
+		<EntryCard
+			index={i}
+			count={data.clearance.length}
+			label={`clearance ${i + 1}`}
+			onMove={(direction) => (data.clearance = moveWithHighlights(data.clearance, 'clearance', i, direction))}
+			onRemove={() => removeClearance(clearance.id)}
+		>
+			<div class="editor-grid">
+				<div>
+					<label for={`${uid}-${i}-level`}>Level</label>
+					<select
+						id={`${uid}-${i}-level`}
+						bind:value={clearance.level}
+						class:ai-filled={aiFilled.has(`clearance.${i}.level`)}
+						onchange={() => clearHighlight(`clearance.${i}.level`)}
+					>
+						{#each LEVELS as level}
+							<option value={level}>{level}</option>
+						{/each}
+					</select>
 				</div>
-				<div class="ml-2 flex items-center gap-2">
-					<MoveControls
-						index={i}
-						count={data.clearance.length}
-						label={`clearance ${i + 1}`}
-						onMove={(direction) => (data.clearance = moveWithHighlights(data.clearance, 'clearance', i, direction))}
+				<div>
+					<label for={`${uid}-${i}-status`}>Status</label>
+					<select
+						id={`${uid}-${i}-status`}
+						bind:value={clearance.status}
+						class:ai-filled={aiFilled.has(`clearance.${i}.status`)}
+						onchange={() => clearHighlight(`clearance.${i}.status`)}
+					>
+						{#each STATUSES as status}
+							<option value={status}>{status}</option>
+						{/each}
+					</select>
+				</div>
+				<div>
+					<label for={`${uid}-${i}-date-granted`}>Date Granted</label>
+					<input
+						id={`${uid}-${i}-date-granted`}
+						type="month"
+						bind:value={clearance.dateGranted}
+						class:ai-filled={aiFilled.has(`clearance.${i}.dateGranted`)}
+						oninput={() => clearHighlight(`clearance.${i}.dateGranted`)}
 					/>
-					<button class="danger text-sm px-2 py-1" onclick={() => removeClearance(clearance.id)}>Remove</button>
 				</div>
 			</div>
-		</div>
+		</EntryCard>
 	{/each}
-	{#if data.clearance.length === 0}<p class="text-gray-500 text-center py-8">No clearance info added yet.</p>{/if}
+	{#if data.clearance.length === 0}<p class="editor-empty">No clearance info added yet.</p>{/if}
 </div>

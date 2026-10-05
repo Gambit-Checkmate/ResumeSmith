@@ -208,7 +208,7 @@
 			{#if pendingDocx}
 				<div class="space-y-3 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-950">
 					<p class="font-medium break-words">{pendingDocx.name}</p>
-					<p>This Word file will be sent to AI to convert it. Images and some styling may not carry over.</p>
+					<p>This Word file is sent to AI for conversion. Images and some styling may not carry over.</p>
 					<div class="flex justify-end gap-2">
 						<button class="secondary" type="button" onclick={() => (pendingDocx = null)}>Cancel</button>
 						<button class="primary" type="button" onclick={() => pendingDocx && loadTemplate(pendingDocx, true)}
@@ -238,7 +238,7 @@
 					{:else}
 						<span class="text-gray-600">Upload a Word or Typst template</span>
 						<span class="mt-1 block text-xs text-gray-400"
-							>.docx up to {DOCX_TEMPLATE_MAX_LABEL} or .typ up to 1 MB. Lasts until you close this tab.</span
+							>.docx up to {DOCX_TEMPLATE_MAX_LABEL} or .typ up to 1 MB. Saved until you close this tab.</span
 						>
 					{/if}
 				</button>
@@ -261,7 +261,7 @@
 			<details class="text-sm text-gray-700">
 				<summary class="cursor-pointer text-gray-600 hover:text-gray-900">Making your own Typst template</summary>
 				<div class="mt-2 space-y-2 rounded-md border border-gray-200 p-3">
-					<p>Start from the starter file. Keep its helper functions and this line:</p>
+					<p>Keep the starter file's helper functions and this line:</p>
 					<code class="block overflow-x-auto rounded bg-gray-100 px-2 py-1 text-xs">{RESUME_CONTENT_MARKER}</code>
 					<p class="text-xs text-gray-500">Everything below that line is replaced with your {documentName}.</p>
 					<button class="secondary text-xs" type="button" onclick={downloadStarterTemplate}

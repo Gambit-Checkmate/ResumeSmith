@@ -4,7 +4,7 @@
 	import { aiFilled, clearHighlight } from '$lib/ai-highlight';
 	import { presentationKinds, presentationKindLabels } from '$lib/presentation';
 	import { moveWithHighlights } from '$lib/reorder';
-	import MoveControls from '../MoveControls.svelte';
+	import EntryCard from '../EntryCard.svelte';
 
 	let { data }: { data: ResumeData } = $props();
 
@@ -19,17 +19,24 @@
 	}
 </script>
 
-<div class="space-y-4">
-	<div class="flex items-center justify-between">
-		<h2 class="text-lg font-semibold">Presentations</h2>
-		<button class="primary text-sm" onclick={addPresentation}>+ Add presentation</button>
+<div class="editor-form">
+	<div class="editor-heading">
+		<h2>Presentations</h2>
+		<button class="primary editor-add" onclick={addPresentation}>+ Add presentation</button>
 	</div>
 	{#each data.presentations as presentation, i (presentation.id)}
 		{@const id = `presentation-${presentation.id}`}
 		{@const path = `presentations.${i}`}
-		<div class="border rounded-lg p-4 space-y-3 bg-gray-50">
-			<div class="flex justify-between items-start gap-2">
-				<div class="flex-1">
+		<EntryCard
+			index={i}
+			count={data.presentations.length}
+			label={`presentation ${i + 1}`}
+			onMove={(direction) =>
+				(data.presentations = moveWithHighlights(data.presentations, 'presentations', i, direction))}
+			onRemove={() => removePresentation(presentation.id)}
+		>
+			<div class="editor-grid">
+				<div class="editor-span">
 					<label for="{id}-title">Title</label><input
 						id="{id}-title"
 						type="text"
@@ -39,18 +46,6 @@
 						oninput={() => clearHighlight(`${path}.title`)}
 					/>
 				</div>
-				<div class="mt-6 flex items-center gap-2">
-					<MoveControls
-						index={i}
-						count={data.presentations.length}
-						label={`presentation ${i + 1}`}
-						onMove={(direction) =>
-							(data.presentations = moveWithHighlights(data.presentations, 'presentations', i, direction))}
-					/>
-					<button class="danger text-sm px-2 py-1" onclick={() => removePresentation(presentation.id)}>Remove</button>
-				</div>
-			</div>
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
 				<div>
 					<label for="{id}-event">Event</label><input
 						id="{id}-event"
@@ -88,7 +83,7 @@
 						{/each}
 					</select>
 				</div>
-				<div class="md:col-span-2">
+				<div class="editor-span">
 					<label for="{id}-url">Link</label><input
 						id="{id}-url"
 						type="text"
@@ -99,7 +94,7 @@
 					/>
 				</div>
 			</div>
-		</div>
+		</EntryCard>
 	{/each}
-	{#if data.presentations.length === 0}<p class="text-gray-500 text-center py-8">No presentations added yet.</p>{/if}
+	{#if data.presentations.length === 0}<p class="editor-empty">No presentations added yet.</p>{/if}
 </div>

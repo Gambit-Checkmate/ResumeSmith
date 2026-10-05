@@ -21,9 +21,16 @@
 	import { bibliographyStore } from '$lib/bibliography-store';
 	import { resetHighlights } from '$lib/ai-highlight';
 	import type { ResumeBackup } from '$lib/resume-backup';
+	import {
+		OWNED_LOCAL_STORAGE_KEYS,
+		OWNED_SESSION_STORAGE_KEYS,
+		removeOwnedStorageKeys,
+		type StorageRemovalResult,
+	} from '$lib/clear-browser-data';
 
 	import AppHeader from '$lib/components/AppHeader.svelte';
 	import BackupModal from '$lib/components/BackupModal.svelte';
+	import ClearDataModal from '$lib/components/ClearDataModal.svelte';
 	import UploadModal from '$lib/components/UploadModal.svelte';
 	import TemplateModal from '$lib/components/TemplateModal.svelte';
 	import OnetDrawer from '$lib/components/OnetDrawer.svelte';
@@ -61,9 +68,11 @@
 	let isPreviewLoading = $state(false);
 	let uploadOpen = $state(false);
 	let backupOpen = $state(false);
+	let clearDataOpen = $state(false);
 	let templateOpen = $state(false);
 	let tailorOpen = $state(false);
 	let showReviewBanner = $state(false);
+	let skipNextPersistence = false;
 	let estimatedOverOnePage = $derived(data.documentType === 'resume' && estimateOverOnePage(data));
 	let compiledPageCount = $derived(preview?.pages.length ?? null);
 
@@ -106,9 +115,52 @@
 	});
 
 	$effect(() => {
+		// Track nested edits even on the reset pass, so saving resumes on the next edit.
+		const snapshot = $state.snapshot(data);
+		if (skipNextPersistence) {
+			skipNextPersistence = false;
+			return;
+		}
 		resumeStore.set(data);
-		resumeStore.saveToStorage(data);
+		resumeStore.saveToStorage(snapshot);
 	});
+
+	function clearBrowserData(): string | null {
+		const unavailable = (keys: readonly string[]): StorageRemovalResult => ({ removed: [], failed: [...keys] });
+		let localResult = unavailable(OWNED_LOCAL_STORAGE_KEYS);
+		let sessionResult = unavailable(OWNED_SESSION_STORAGE_KEYS);
+		try {
+			localResult = removeOwnedStorageKeys(window.localStorage, OWNED_LOCAL_STORAGE_KEYS);
+		} catch {
+			/* Storage access can be blocked by the browser. */
+		}
+		try {
+			sessionResult = removeOwnedStorageKeys(window.sessionStorage, OWNED_SESSION_STORAGE_KEYS);
+		} catch {
+			/* Storage access can be blocked by the browser. */
+		}
+
+		// Cancel validation-backed hydrations and reset all application state even if storage is blocked.
+		skipNextPersistence = true;
+		resumeStore.reset();
+		onetStore.clear();
+		customTemplateStores.resume.clear();
+		customTemplateStores.cv.clear();
+		bibliographyStore.clear();
+		resetHighlights();
+		activeTab = 'personal';
+		showCode = false;
+		showReviewBanner = false;
+		textExportStatus = '';
+		compileError = null;
+		tailorOpen = false;
+
+		const failed = [...localResult.failed, ...sessionResult.failed];
+		if (failed.length) {
+			return 'The page was reset, but browser storage could not confirm removal of all saved data. Check your browser storage settings and try again.';
+		}
+		return null;
+	}
 
 	async function downloadPdfFile() {
 		isCompiling = true;
@@ -194,6 +246,7 @@
 		onDownloadText={downloadTextFile}
 		{textExportStatus}
 		onBackup={() => (backupOpen = true)}
+		onClearData={() => (clearDataOpen = true)}
 		onUpload={() => (uploadOpen = true)}
 		onTemplate={() => (templateOpen = true)}
 		onTailor={() => (tailorOpen = true)}
@@ -269,6 +322,7 @@
 
 	<AppFooter />
 	<BackupModal bind:open={backupOpen} {data} onRestore={applyBackup} />
+	<ClearDataModal bind:open={clearDataOpen} onConfirm={clearBrowserData} />
 	<UploadModal bind:open={uploadOpen} documentType={data.documentType} onApplied={() => (showReviewBanner = true)} />
 	<TemplateModal bind:open={templateOpen} {data} currentTemplate={customTemplate} />
 </div>

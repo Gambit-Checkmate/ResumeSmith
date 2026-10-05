@@ -17,6 +17,7 @@
 		onDownloadText,
 		textExportStatus,
 		onBackup,
+		onClearData,
 		onUpload,
 		onTemplate,
 		onTailor,
@@ -35,6 +36,7 @@
 		onDownloadText: () => void;
 		textExportStatus: string;
 		onBackup: () => void;
+		onClearData: () => void;
 		onUpload: () => void;
 		onTemplate: () => void;
 		onTailor: () => void;
@@ -226,7 +228,7 @@
 							<p id="header-menu-formats" class="menu-heading">Other formats</p>
 							{@render menuItem(
 								'Download Typst',
-								'The Typst source, or the empty template if there is no content yet',
+								'Typst source, or an empty template if there is no content',
 								onDownloadTypst,
 							)}
 							{@render menuItem('Copy resume text', 'Readable text for application forms', onCopyText)}
@@ -236,6 +238,16 @@
 						<div role="group" aria-labelledby="header-menu-data">
 							<p id="header-menu-data" class="menu-heading">Your data</p>
 							{@render menuItem('Backup / restore', 'Download or restore editable resume data', onBackup)}
+							<button
+								type="button"
+								role="menuitem"
+								tabindex="-1"
+								class="menu-item block w-full text-left text-red-700 hover:bg-red-50 focus:bg-red-50 focus:outline-none"
+								onclick={() => choose(onClearData)}
+							>
+								<span class="block text-sm font-medium">Delete saved data</span>
+								<span class="block text-xs text-red-600">Remove saved data from this browser</span>
+							</button>
 						</div>
 					</div>
 				{/if}

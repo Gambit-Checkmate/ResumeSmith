@@ -55,36 +55,116 @@
 </script>
 
 <div>
-	<div class="flex items-center justify-between mb-2">
+	<div class="mb-2 flex items-center justify-between gap-2">
 		<span class="text-sm font-medium text-gray-700">{label}</span>
-		<button class="secondary text-xs px-2 py-1" onclick={addBullet}>+ Add bullet</button>
+		<button type="button" class="add text-xs" onclick={addBullet}>+ Add bullet</button>
 	</div>
 	{#each bullets as _, bi (bulletKeys[bi] ?? `pending-${bi}`)}
-		<div class="flex flex-wrap items-start gap-2 mb-2">
+		<div class="mb-2 flex flex-wrap items-start gap-x-2 gap-y-1">
+			<span class="number" aria-hidden="true">{bi + 1}</span>
 			<textarea
 				id={`${fieldId}-${bi}`}
 				aria-label={`${label} bullet ${bi + 1}`}
 				rows="1"
 				bind:value={bullets[bi]}
 				{placeholder}
-				class="flex-1 resize-none overflow-hidden"
+				class="bullet-input resize-none overflow-hidden"
 				class:ai-filled={aiFilled.has(`${path}.${bi}`)}
 				{@attach autosize(bullets[bi])}
 				onkeydown={(e) => e.key === 'Enter' && !e.isComposing && e.preventDefault()}
 				oninput={(e) => handleInput(e, bi)}
 			></textarea>
-			<MoveControls
-				index={bi}
-				count={bullets.length}
-				label={`${label} bullet ${bi + 1}`}
-				onMove={(direction) => moveBullet(bi, direction)}
-			/>
-			{#if bullets.length > 1}<button
-					class="danger self-start text-xs px-2"
-					onclick={() => removeBullet(bi)}
-					aria-label="Remove bullet"
-					title="Remove bullet">Remove</button
-				>{/if}
+			<div class="actions">
+				<MoveControls
+					index={bi}
+					count={bullets.length}
+					label={`${label} bullet ${bi + 1}`}
+					onMove={(direction) => moveBullet(bi, direction)}
+				/>
+				{#if bullets.length > 1}<button
+						type="button"
+						class="remove"
+						onclick={() => removeBullet(bi)}
+						aria-label="Remove bullet"
+						title="Remove bullet"
+					>
+						<svg
+							class="h-4 w-4"
+							viewBox="0 0 20 20"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							aria-hidden="true"
+						>
+							<path stroke-linecap="round" stroke-linejoin="round" d="m6 6 8 8M14 6l-8 8" />
+						</svg>
+					</button>{/if}
+			</div>
 		</div>
 	{/each}
 </div>
+
+<style>
+	/* The global button rule in app.css is unlayered, so sizes are set here rather than with utilities. */
+	.number {
+		flex: none;
+		width: 1.25rem;
+		padding-top: 0.5rem;
+		text-align: right;
+		font-size: 0.75rem;
+		line-height: 1.25rem;
+		font-variant-numeric: tabular-nums;
+		color: var(--color-gray-400, #9ca3af);
+	}
+
+	/* Basis keeps the actions beside the text when there is room and wraps them below it when there is not. */
+	.bullet-input {
+		flex: 1 1 12rem;
+		min-width: 0;
+	}
+
+	.actions {
+		display: flex;
+		flex: none;
+		align-items: center;
+		gap: 0.25rem;
+		margin-left: auto;
+	}
+
+	.add {
+		padding: 0.25rem 0.5rem;
+		color: var(--color-gray-600, #4b5563);
+		background-color: transparent;
+	}
+
+	.add:hover {
+		background-color: var(--color-gray-100, #f3f4f6);
+		color: var(--color-gray-900, #111827);
+	}
+
+	.add:focus-visible,
+	.remove:focus-visible {
+		outline: 2px solid var(--color-blue-500, #3b82f6);
+		outline-offset: 1px;
+	}
+
+	.remove {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.75rem;
+		height: 1.75rem;
+		padding: 0;
+		color: var(--color-gray-500, #6b7280);
+		background-color: transparent;
+	}
+
+	.remove:hover {
+		background-color: var(--color-red-50, #fef2f2);
+		color: var(--color-red-700, #b91c1c);
+	}
+
+	.remove:focus-visible {
+		outline-color: var(--color-red-500, #ef4444);
+	}
+</style>

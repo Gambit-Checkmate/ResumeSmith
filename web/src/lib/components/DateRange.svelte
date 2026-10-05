@@ -39,8 +39,38 @@
 		class:ai-filled={aiFilled.has(`${path}.endDate`)}
 		oninput={() => clearHighlight(`${path}.endDate`)}
 	/>
-	<label class="flex items-center gap-2 mt-2 cursor-pointer select-none">
-		<input type="checkbox" bind:checked={isPresent} class="w-4 h-4 rounded" />
-		<span class="text-sm text-gray-600">{presentLabel}</span>
+	<label class="present">
+		<input type="checkbox" bind:checked={isPresent} />
+		<span>{presentLabel}</span>
 	</label>
 </div>
+
+<style>
+	.present {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin: 0.5rem 0 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		color: var(--color-gray-600, #4b5563);
+		cursor: pointer;
+		user-select: none;
+	}
+
+	.present input {
+		width: 1rem;
+		height: 1rem;
+		border-radius: 0.25rem;
+		accent-color: var(--color-blue-600, #2563eb);
+	}
+
+	.present input:focus-visible {
+		outline: 2px solid var(--color-blue-500, #3b82f6);
+		outline-offset: 2px;
+	}
+
+	.present:has(input:disabled) {
+		cursor: not-allowed;
+	}
+</style>

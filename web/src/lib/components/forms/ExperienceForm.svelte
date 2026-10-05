@@ -30,10 +30,10 @@
 	const uid = $props.id();
 </script>
 
-<div class="space-y-4">
-	<div class="flex items-center justify-between">
-		<h2 class="text-lg font-semibold">Work Experience</h2>
-		<button class="primary text-sm" onclick={addWorkExperience}>+ Add job</button>
+<div class="editor-form">
+	<div class="editor-heading">
+		<h2>Work Experience</h2>
+		<button class="primary editor-add" onclick={addWorkExperience}>+ Add job</button>
 	</div>
 	{#each data.workExperience as work, i (work.id)}
 		<EntryCard
@@ -44,7 +44,7 @@
 				(data.workExperience = moveWithHighlights(data.workExperience, 'workExperience', i, direction))}
 			onRemove={() => removeWorkExperience(work.id)}
 		>
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+			<div class="editor-grid">
 				<div>
 					<label for={`${uid}-${i}-job-title`}>Job Title</label>
 					<input
@@ -67,7 +67,7 @@
 						oninput={() => clearHighlight(`workExperience.${i}.company`)}
 					/>
 				</div>
-				<div class="md:col-span-2">
+				<div class="editor-span">
 					<label for={`${uid}-${i}-location`}>Location</label>
 					<input
 						id={`${uid}-${i}-location`}
@@ -94,5 +94,5 @@
 			/>
 		</EntryCard>
 	{/each}
-	{#if data.workExperience.length === 0}<p class="text-gray-500 text-center py-8">No experience added yet.</p>{/if}
+	{#if data.workExperience.length === 0}<p class="editor-empty">No experience added yet.</p>{/if}
 </div>

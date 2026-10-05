@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { FontSettings, ResumeData } from '$lib/types';
 	import { defaultFontFamilies, defaultFontSettings } from '$lib/types';
-	import { DEFAULT_FONT_FAMILY, FONT_OPTIONS, FONT_SIZE_BOUNDS, FONT_SIZE_STEP, stepFontSize } from '$lib/fonts';
+	import { DEFAULT_FONT_FAMILY, FONT_OPTIONS } from '$lib/fonts';
+	import FontSizeField from '$lib/components/FontSizeField.svelte';
 
 	let { data }: { data: ResumeData } = $props();
 
@@ -18,71 +19,61 @@
 	}
 </script>
 
-<div class="space-y-4">
-	<div class="flex items-center justify-between">
-		<h2 class="text-lg font-semibold">Font Settings</h2>
-		<button class="secondary text-sm" onclick={resetFontSettings}>Reset to Default</button>
+<div class="editor-form">
+	<div class="editor-heading">
+		<h2>Font Settings</h2>
+		<button type="button" class="editor-action" onclick={resetFontSettings}>Reset to Default</button>
 	</div>
 
-	<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-		<div>
-			<label for="heading-font">Heading Font</label>
-			<select id="heading-font" bind:value={data.fontFamilies.heading}>
-				{#each FONT_OPTIONS as option (option.family)}
-					<option value={option.family}
-						>{option.family}{option.family === DEFAULT_FONT_FAMILY ? ' (default)' : ''}</option
-					>
-				{/each}
-			</select>
-			<p class="text-xs text-gray-500 mt-1">Your name and section headings</p>
-		</div>
-		<div>
-			<label for="body-font">Body Font</label>
-			<select id="body-font" bind:value={data.fontFamilies.body}>
-				{#each FONT_OPTIONS as option (option.family)}
-					<option value={option.family}
-						>{option.family}{option.family === DEFAULT_FONT_FAMILY ? ' (default)' : ''}</option
-					>
-				{/each}
-			</select>
-			<p class="text-xs text-gray-500 mt-1">Entries, bullets, and contact info</p>
-		</div>
-	</div>
-	<p class="text-xs text-gray-500">Custom templates keep their own fonts.</p>
-
-	<p class="text-sm text-gray-600">Sizes are in points (pt).</p>
-	<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-		{#each SIZES as size (size.key)}
-			{@const [min, max] = FONT_SIZE_BOUNDS[size.key]}
-			<div class="min-w-0">
-				<label for={`font-${size.key}`}>{size.label}</label>
-				<div class="flex items-center gap-2">
-					<input
-						id={`font-${size.key}`}
-						type="range"
-						{min}
-						{max}
-						step="0.1"
-						bind:value={data.fonts[size.key]}
-						class="min-w-0 flex-1"
-					/>
-					<button
-						class="secondary shrink-0 px-2 py-0.5 text-sm"
-						onclick={() => (data.fonts[size.key] = stepFontSize(data.fonts[size.key], -FONT_SIZE_STEP, size.key))}
-						disabled={data.fonts[size.key] <= min}
-						aria-label={`Decrease ${size.label.toLowerCase()} by ${FONT_SIZE_STEP} pt`}>-</button
-					>
-					<span class="min-w-14 shrink-0 whitespace-nowrap text-center font-mono text-sm">{data.fonts[size.key]}pt</span
-					>
-					<button
-						class="secondary shrink-0 px-2 py-0.5 text-sm"
-						onclick={() => (data.fonts[size.key] = stepFontSize(data.fonts[size.key], FONT_SIZE_STEP, size.key))}
-						disabled={data.fonts[size.key] >= max}
-						aria-label={`Increase ${size.label.toLowerCase()} by ${FONT_SIZE_STEP} pt`}>+</button
-					>
-				</div>
-				<p class="text-xs text-gray-500 mt-1">{size.hint}</p>
+	<section class="editor-section" aria-labelledby="font-typefaces-title">
+		<h3 id="font-typefaces-title" class="editor-subheading">Typefaces</h3>
+		<div class="editor-grid">
+			<div>
+				<label for="heading-font">Heading Font</label>
+				<select id="heading-font" bind:value={data.fontFamilies.heading}>
+					{#each FONT_OPTIONS as option (option.family)}
+						<option value={option.family}
+							>{option.family}{option.family === DEFAULT_FONT_FAMILY ? ' (default)' : ''}</option
+						>
+					{/each}
+				</select>
+				<p class="mt-1 text-xs text-gray-500">Your name and section headings</p>
 			</div>
-		{/each}
-	</div>
+			<div>
+				<label for="body-font">Body Font</label>
+				<select id="body-font" bind:value={data.fontFamilies.body}>
+					{#each FONT_OPTIONS as option (option.family)}
+						<option value={option.family}
+							>{option.family}{option.family === DEFAULT_FONT_FAMILY ? ' (default)' : ''}</option
+						>
+					{/each}
+				</select>
+				<p class="mt-1 text-xs text-gray-500">Entries, bullets, and contact info</p>
+			</div>
+		</div>
+	</section>
+
+	<section class="editor-section" aria-labelledby="font-sizes-title">
+		<div>
+			<h3 id="font-sizes-title" class="editor-subheading">Sizes</h3>
+			<p class="editor-description mt-1">
+				Enter a size in points or use the arrow keys, −, and + to change it by 0.5 pt.
+			</p>
+		</div>
+		<div class="divide-y divide-gray-200">
+			{#each SIZES as size (size.key)}
+				<div class="py-3 first:pt-0 last:pb-0">
+					<FontSizeField
+						id={`font-${size.key}`}
+						label={size.label}
+						hint={size.hint}
+						sizeKey={size.key}
+						bind:value={data.fonts[size.key]}
+					/>
+				</div>
+			{/each}
+		</div>
+	</section>
+
+	<p class="text-xs text-gray-500">Custom templates keep their own fonts.</p>
 </div>

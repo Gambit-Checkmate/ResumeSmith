@@ -1,8 +1,15 @@
 <script lang="ts">
-	import type { ResumeData } from '$lib/types';
+	import type { ColorSettings, ResumeData } from '$lib/types';
 	import { defaultResumeData } from '$lib/types';
 
 	let { data }: { data: ResumeData } = $props();
+
+	const COLORS: { key: keyof ColorSettings; label: string; hint: string; idSuffix: string }[] = [
+		{ key: 'headColor', label: 'Header Color', hint: 'Your name', idSuffix: 'header-color' },
+		{ key: 'textColor', label: 'Text Color', hint: 'Body text', idSuffix: 'text-color' },
+		{ key: 'accentColor', label: 'Accent Color', hint: 'Section headings and rules', idSuffix: 'accent-color' },
+		{ key: 'linkColor', label: 'Link Color', hint: 'Email and web links', idSuffix: 'link-color' },
+	];
 
 	function resetColorSettings() {
 		data.colors = { ...defaultResumeData.colors };
@@ -10,47 +17,58 @@
 	const uid = $props.id();
 </script>
 
-<div class="space-y-4">
-	<div class="flex items-center justify-between">
-		<h2 class="text-lg font-semibold">Color Settings</h2>
-		<button class="secondary text-sm" onclick={resetColorSettings}>Reset to Default</button>
+<div class="editor-form">
+	<div class="editor-heading">
+		<h2>Color Settings</h2>
+		<button type="button" class="editor-action" onclick={resetColorSettings}>Reset to Default</button>
 	</div>
-	<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-		<div>
-			<label for={`${uid}-header-color`}>Header Color</label>
-			<input
-				id={`${uid}-header-color`}
-				type="color"
-				bind:value={data.colors.headColor}
-				class="w-full h-10 p-1 rounded cursor-pointer"
-			/>
-		</div>
-		<div>
-			<label for={`${uid}-text-color`}>Text Color</label>
-			<input
-				id={`${uid}-text-color`}
-				type="color"
-				bind:value={data.colors.textColor}
-				class="w-full h-10 p-1 rounded cursor-pointer"
-			/>
-		</div>
-		<div>
-			<label for={`${uid}-accent-color`}>Accent Color</label>
-			<input
-				id={`${uid}-accent-color`}
-				type="color"
-				bind:value={data.colors.accentColor}
-				class="w-full h-10 p-1 rounded cursor-pointer"
-			/>
-		</div>
-		<div>
-			<label for={`${uid}-link-color`}>Link Color</label>
-			<input
-				id={`${uid}-link-color`}
-				type="color"
-				bind:value={data.colors.linkColor}
-				class="w-full h-10 p-1 rounded cursor-pointer"
-			/>
-		</div>
+	<div class="editor-grid">
+		{#each COLORS as color (color.key)}
+			<div class="color-card flex min-w-0 items-center gap-3 rounded-lg border border-gray-200 bg-white p-3">
+				<input
+					id={`${uid}-${color.idSuffix}`}
+					type="color"
+					bind:value={data.colors[color.key]}
+					class="color-swatch shrink-0 cursor-pointer"
+					aria-describedby={`${uid}-${color.idSuffix}-hint`}
+				/>
+				<div class="min-w-0">
+					<label for={`${uid}-${color.idSuffix}`} class="mb-0!">{color.label}</label>
+					<p id={`${uid}-${color.idSuffix}-hint`} class="truncate text-xs text-gray-500">
+						{color.hint} · <span class="font-mono uppercase">{data.colors[color.key]}</span>
+					</p>
+				</div>
+			</div>
+		{/each}
 	</div>
 </div>
+
+<style>
+	.color-card:focus-within {
+		border-color: var(--color-blue-500);
+		box-shadow: 0 0 0 1px var(--color-blue-500);
+	}
+
+	.color-swatch {
+		width: 2.5rem;
+		height: 2.5rem;
+		padding: 0;
+		border: 1px solid var(--color-gray-300);
+		border-radius: 0.5rem;
+		background: none;
+	}
+
+	.color-swatch::-webkit-color-swatch-wrapper {
+		padding: 2px;
+	}
+
+	.color-swatch::-webkit-color-swatch {
+		border: 0;
+		border-radius: 0.375rem;
+	}
+
+	.color-swatch::-moz-color-swatch {
+		border: 0;
+		border-radius: 0.375rem;
+	}
+</style>

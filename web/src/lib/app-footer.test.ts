@@ -41,7 +41,7 @@ describe('footer', () => {
 		const text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
 		expect(text).toContain('Austin Sternberg');
 		expect(text).toMatch(/Typst\s+Layout by\s+TJ Raklovits/);
-		expect(text).toContain('Version: Test');
+		expect(text).toMatch(/Version:\s+Test/);
 		expect(html).toContain('href="https://github.com/YoyoJesus/ResumeSmith"');
 	});
 

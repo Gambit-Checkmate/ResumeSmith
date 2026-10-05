@@ -69,4 +69,31 @@ describe('bibliography store', () => {
 		expect(get(bibliographyStore)).toBeNull();
 		expect(window.localStorage.getItem(BIBLIOGRAPHY_STORAGE_KEY)).toBeNull();
 	});
+
+	it('keeps a newer bibliography when an older load fails validation', async () => {
+		window.localStorage.setItem(BIBLIOGRAPHY_STORAGE_KEY, JSON.stringify(bibliography));
+		let rejectValidation!: (error: Error) => void;
+		vi.mocked(compileToPdf).mockImplementationOnce(() => new Promise((_, reject) => (rejectValidation = reject)));
+		const loading = bibliographyStore.loadFromStorage();
+		const newer = { ...bibliography, name: 'new.bib', source: '@misc{new, title={New}}' };
+		bibliographyStore.save(newer);
+		rejectValidation(new Error('old bibliography is invalid'));
+		await loading;
+		expect(get(bibliographyStore)).toEqual(newer);
+		expect(JSON.parse(window.localStorage.getItem(BIBLIOGRAPHY_STORAGE_KEY)!)).toEqual(newer);
+	});
+
+	it('does not restore a bibliography when validation finishes after clear', async () => {
+		window.localStorage.setItem(BIBLIOGRAPHY_STORAGE_KEY, JSON.stringify(bibliography));
+		let finishValidation!: (value: Uint8Array) => void;
+		vi.mocked(compileToPdf).mockImplementationOnce(() => new Promise((resolve) => (finishValidation = resolve)));
+
+		const loading = bibliographyStore.loadFromStorage();
+		bibliographyStore.clear();
+		finishValidation(new Uint8Array([1]));
+		await loading;
+
+		expect(get(bibliographyStore)).toBeNull();
+		expect(window.localStorage.getItem(BIBLIOGRAPHY_STORAGE_KEY)).toBeNull();
+	});
 });

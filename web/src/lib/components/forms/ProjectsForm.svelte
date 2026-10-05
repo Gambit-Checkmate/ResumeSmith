@@ -17,10 +17,10 @@
 	const uid = $props.id();
 </script>
 
-<div class="space-y-4">
-	<div class="flex items-center justify-between">
-		<h2 class="text-lg font-semibold">Projects</h2>
-		<button class="primary text-sm" onclick={addProject}>+ Add project</button>
+<div class="editor-form">
+	<div class="editor-heading">
+		<h2>Projects</h2>
+		<button class="primary editor-add" onclick={addProject}>+ Add project</button>
 	</div>
 	{#each data.projects as project, i (project.id)}
 		<EntryCard
@@ -30,7 +30,7 @@
 			onMove={(direction) => (data.projects = moveWithHighlights(data.projects, 'projects', i, direction))}
 			onRemove={() => removeProject(project.id)}
 		>
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+			<div class="editor-grid">
 				<div>
 					<label for={`${uid}-${i}-project-name`}>Project Name</label>
 					<input
@@ -84,5 +84,5 @@
 			/>
 		</EntryCard>
 	{/each}
-	{#if data.projects.length === 0}<p class="text-gray-500 text-center py-8">No projects added yet.</p>{/if}
+	{#if data.projects.length === 0}<p class="editor-empty">No projects added yet.</p>{/if}
 </div>

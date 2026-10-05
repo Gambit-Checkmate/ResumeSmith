@@ -20,7 +20,6 @@
 	let errorMessage = $state('');
 	let progressMessage = $state('Checking document...');
 	let dragOver = $state(false);
-	let acknowledged = $state(false);
 	let result = $state<PreflightResult | null>(null);
 	let fileInput = $state<HTMLInputElement>();
 	let dialog = $state<HTMLDivElement>();
@@ -49,7 +48,6 @@
 		errorMessage = '';
 		progressMessage = 'Checking document...';
 		dragOver = false;
-		acknowledged = false;
 		result = null;
 		cvImport = null;
 	}
@@ -64,7 +62,6 @@
 		status = 'analyzing';
 		errorMessage = '';
 		result = null;
-		acknowledged = false;
 		try {
 			result = await preflightDocument(
 				file,
@@ -126,7 +123,7 @@
 	}
 
 	async function sendToAI() {
-		if (!result || !acknowledged || result.metrics.status === 'fail') return;
+		if (!result || status !== 'review' || result.metrics.status === 'fail') return;
 		if (importType === 'cv') return importCv();
 		status = 'processing';
 		errorMessage = '';
@@ -239,7 +236,7 @@
 						>
 					{/each}
 				</div>
-				<p class="text-sm text-gray-600">Text is read in your browser. You'll preview it before anything goes to AI.</p>
+				<p class="text-sm text-gray-600">Text is read in your browser. Review it before sending it to AI.</p>
 				{#if importType === 'cv'}
 					<p class="text-xs text-gray-500">
 						Long CVs are sent in parts, one after another. A 20-page CV can take a few minutes.
@@ -260,7 +257,7 @@
 				>
 					<span class="text-gray-600">Drag a file here, or click to browse</span>
 					<span class="mt-1 block text-xs text-gray-400"
-						>PDF, DOCX, or TXT — max 5 MB, {importType === 'cv' ? MAX_CV_PDF_PAGES : MAX_PDF_PAGES} PDF pages</span
+						>PDF, DOCX, or TXT. Max 5 MB and {importType === 'cv' ? MAX_CV_PDF_PAGES : MAX_PDF_PAGES} PDF pages</span
 					>
 				</button>
 				<input bind:this={fileInput} type="file" accept={ACCEPT} class="hidden" onchange={onPick} />
@@ -313,30 +310,24 @@
 					</div>
 
 					<div>
-						<p class="mb-1 text-xs font-medium text-gray-600">Text that will be sent</p>
+						<p class="mb-1 text-xs font-medium text-gray-600">Extracted-text preview (first 900 characters)</p>
 						<pre
 							class="max-h-32 overflow-auto whitespace-pre-wrap rounded border bg-gray-50 p-3 text-xs">{result.preview}</pre>
 					</div>
 
-					<label class="flex items-start gap-2">
-						<input
-							class="mt-0.5"
-							type="checkbox"
-							bind:checked={acknowledged}
-							disabled={result.metrics.status === 'fail'}
-						/>
-						<span class="text-sm font-normal text-gray-700">
-							Send this text to AI. Your original file stays on your device.
-						</span>
-					</label>
+					<p id="upload-ai-consent" class="text-sm text-gray-700">
+						Send to AI shares the full extracted text to fill in your {noun}. The preview shows the first 900
+						characters. Your original file stays on your device.
+					</p>
 
 					<div class="flex justify-between gap-2">
 						<button class="secondary" type="button" onclick={reset}>Back</button>
 						<button
 							class="primary"
 							type="button"
+							aria-describedby="upload-ai-consent"
 							onclick={sendToAI}
-							disabled={!acknowledged || result.metrics.status === 'fail'}>Fill in my {noun}</button
+							disabled={result.metrics.status === 'fail'}>Send to AI and fill in my {noun}</button
 						>
 					</div>
 				</div>
