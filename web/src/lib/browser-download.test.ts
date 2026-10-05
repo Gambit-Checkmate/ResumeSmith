@@ -33,4 +33,23 @@ describe('downloadBlob', () => {
 		vi.runAllTimers();
 		expect(events).toEqual(['append', 'click', 'remove', 'revoke']);
 	});
+
+	it('releases the object URL and anchor if the browser rejects the download', () => {
+		const events: string[] = [];
+		vi.stubGlobal('URL', {
+			createObjectURL: () => 'blob:test',
+			revokeObjectURL: () => events.push('revoke'),
+		});
+		vi.stubGlobal('document', {
+			createElement: () => ({
+				click: () => {
+					throw new Error('download blocked');
+				},
+				remove: () => events.push('remove'),
+			}),
+			body: { appendChild: () => events.push('append') },
+		});
+		expect(() => downloadBlob(new Blob(['resume']), 'backup.json')).toThrow('download blocked');
+		expect(events).toEqual(['append', 'revoke', 'remove']);
+	});
 });
