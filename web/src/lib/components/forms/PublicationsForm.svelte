@@ -11,6 +11,8 @@
 		type BibliographyStyle,
 	} from '$lib/bibliography';
 	import { bibliographyStore, validateBibliography } from '$lib/bibliography-store';
+	import { moveWithHighlights } from '$lib/reorder';
+	import MoveControls from '../MoveControls.svelte';
 
 	let { data }: { data: ResumeData } = $props();
 
@@ -141,7 +143,16 @@
 						oninput={() => clearHighlight(`publications.${i}.title`)}
 					/>
 				</div>
-				<button class="danger text-sm px-2 py-1 mt-6" onclick={() => removePublication(publication.id)}>Remove</button>
+				<div class="mt-6 flex items-center gap-2">
+					<MoveControls
+						index={i}
+						count={data.publications.length}
+						label={`publication ${i + 1}`}
+						onMove={(direction) =>
+							(data.publications = moveWithHighlights(data.publications, 'publications', i, direction))}
+					/>
+					<button class="danger text-sm px-2 py-1" onclick={() => removePublication(publication.id)}>Remove</button>
+				</div>
 			</div>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
 				<div>

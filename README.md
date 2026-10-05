@@ -7,6 +7,7 @@ ResumeSmith is a privacy-conscious resume builder for forging polished, job-read
 ## Features
 
 - Edit resume content in the browser and preview the rendered document as you work, including sections for experience, projects, clearance, achievements, publications, presentations, and custom sections you name yourself (grants, teaching, service, and so on).
+- Move repeated entries and bullet points with keyboard-accessible up/down buttons. Their order is saved in the browser and used in Typst/PDF output; whole sections remain reorderable in the Layout tab.
 - Switch between a one-page resume and a multi-page academic CV. CV mode uses a template with running headers, "Page N of M" numbering, and looser spacing, shows the page count instead of the one-page warning, and hides O\*NET tailoring, which does not apply to academic CVs.
 - Record publications with authors, venue, volume, issue, pages, DOI, and status (published, in press, under review), with your own name in bold. In CV mode, optionally add a BibTeX (`.bib`) file, rendered by Typst in APA, Chicago author-date, IEEE, or MLA style.
 - Export a polished PDF using the bundled Typst WebAssembly compiler.

@@ -3,6 +3,8 @@
 	import { generateId } from '$lib/resume-utils';
 	import { aiFilled, clearHighlight } from '$lib/ai-highlight';
 	import { presentationKinds, presentationKindLabels } from '$lib/presentation';
+	import { moveWithHighlights } from '$lib/reorder';
+	import MoveControls from '../MoveControls.svelte';
 
 	let { data }: { data: ResumeData } = $props();
 
@@ -37,8 +39,16 @@
 						oninput={() => clearHighlight(`${path}.title`)}
 					/>
 				</div>
-				<button class="danger text-sm px-2 py-1 mt-6" onclick={() => removePresentation(presentation.id)}>Remove</button
-				>
+				<div class="mt-6 flex items-center gap-2">
+					<MoveControls
+						index={i}
+						count={data.presentations.length}
+						label={`presentation ${i + 1}`}
+						onMove={(direction) =>
+							(data.presentations = moveWithHighlights(data.presentations, 'presentations', i, direction))}
+					/>
+					<button class="danger text-sm px-2 py-1" onclick={() => removePresentation(presentation.id)}>Remove</button>
+				</div>
 			</div>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
 				<div>

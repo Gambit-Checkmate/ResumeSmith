@@ -2,6 +2,8 @@
 	import type { ResumeData } from '$lib/types';
 	import { generateId } from '$lib/resume-utils';
 	import { aiFilled, clearHighlight } from '$lib/ai-highlight';
+	import { moveWithHighlights } from '$lib/reorder';
+	import MoveControls from '../MoveControls.svelte';
 
 	let { data }: { data: ResumeData } = $props();
 
@@ -19,7 +21,7 @@
 		<h2 class="text-lg font-semibold">Achievements / Certifications</h2>
 		<button class="primary text-sm" onclick={addAchievement}>+ Add achievement</button>
 	</div>
-	{#each data.achievements as achievement, i}
+	{#each data.achievements as achievement, i (achievement.id)}
 		<div class="border rounded-lg p-4 space-y-3 bg-gray-50">
 			<div class="flex justify-between items-start">
 				<div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -45,7 +47,16 @@
 						/>
 					</div>
 				</div>
-				<button class="danger text-sm px-2 py-1 ml-2" onclick={() => removeAchievement(achievement.id)}>Remove</button>
+				<div class="ml-2 flex items-center gap-2">
+					<MoveControls
+						index={i}
+						count={data.achievements.length}
+						label={`achievement ${i + 1}`}
+						onMove={(direction) =>
+							(data.achievements = moveWithHighlights(data.achievements, 'achievements', i, direction))}
+					/>
+					<button class="danger text-sm px-2 py-1" onclick={() => removeAchievement(achievement.id)}>Remove</button>
+				</div>
 			</div>
 			<div>
 				<label for={`${uid}-${i}-description`}>Description</label>

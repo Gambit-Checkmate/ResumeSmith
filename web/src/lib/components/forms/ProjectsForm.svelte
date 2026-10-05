@@ -2,6 +2,7 @@
 	import type { ResumeData } from '$lib/types';
 	import { generateId } from '$lib/resume-utils';
 	import { aiFilled, clearHighlight } from '$lib/ai-highlight';
+	import { moveWithHighlights } from '$lib/reorder';
 	import EntryCard from '../EntryCard.svelte';
 	import BulletEditor from '../BulletEditor.svelte';
 
@@ -21,8 +22,14 @@
 		<h2 class="text-lg font-semibold">Projects</h2>
 		<button class="primary text-sm" onclick={addProject}>+ Add project</button>
 	</div>
-	{#each data.projects as project, i}
-		<EntryCard index={i} onRemove={() => removeProject(project.id)}>
+	{#each data.projects as project, i (project.id)}
+		<EntryCard
+			index={i}
+			count={data.projects.length}
+			label={`project ${i + 1}`}
+			onMove={(direction) => (data.projects = moveWithHighlights(data.projects, 'projects', i, direction))}
+			onRemove={() => removeProject(project.id)}
+		>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
 				<div>
 					<label for={`${uid}-${i}-project-name`}>Project Name</label>

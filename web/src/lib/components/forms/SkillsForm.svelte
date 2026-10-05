@@ -2,6 +2,8 @@
 	import type { ResumeData } from '$lib/types';
 	import { generateId } from '$lib/resume-utils';
 	import { aiFilled, clearHighlight } from '$lib/ai-highlight';
+	import { moveWithHighlights } from '$lib/reorder';
+	import MoveControls from '../MoveControls.svelte';
 
 	let { data }: { data: ResumeData } = $props();
 
@@ -19,7 +21,7 @@
 		<h2 class="text-lg font-semibold">Skills</h2>
 		<button class="primary text-sm" onclick={addSkillCategory}>+ Add category</button>
 	</div>
-	{#each data.skills as skill, i}
+	{#each data.skills as skill, i (skill.id)}
 		<div class="border rounded-lg p-4 bg-gray-50">
 			<div class="flex gap-3 items-start">
 				<div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -46,7 +48,15 @@
 						/>
 					</div>
 				</div>
-				<button class="danger text-sm px-2 py-1" onclick={() => removeSkillCategory(skill.id)}>Remove</button>
+				<div class="flex items-center gap-2">
+					<MoveControls
+						index={i}
+						count={data.skills.length}
+						label={`skill category ${i + 1}`}
+						onMove={(direction) => (data.skills = moveWithHighlights(data.skills, 'skills', i, direction))}
+					/>
+					<button class="danger text-sm px-2 py-1" onclick={() => removeSkillCategory(skill.id)}>Remove</button>
+				</div>
 			</div>
 		</div>
 	{/each}
