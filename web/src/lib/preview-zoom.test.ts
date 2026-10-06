@@ -2,6 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { previewWidth, stepPreviewZoom } from './preview-zoom';
 
 describe('preview zoom', () => {
+	it('fits the whole initial page to both dimensions, including mixed page sizes', () => {
+		expect(previewWidth(780, 'page', 400, 0.75)).toBe(300);
+		expect(previewWidth(320, 'page', 700, 0.75)).toBe(320);
+		expect(previewWidth(900, 'page', 1000, 0.75)).toBe(510);
+		expect(previewWidth(780, 'page', 400, 1.5)).toBe(510);
+		expect(previewWidth(0, 'page', 0, 0.75)).toBe(1);
+		expect(previewWidth(320, 150, 200, 0.75)).toBe(765);
+	});
 	it('fits the page to panel changes and keeps explicit zoom independent of panel size', () => {
 		expect(previewWidth(320, null)).toBe(320);
 		expect(previewWidth(780, null)).toBe(780);

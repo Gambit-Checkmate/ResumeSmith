@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { CompiledPreview } from '$lib/pdf-compiler';
 	import PaginatedPreview from './PaginatedPreview.svelte';
+	import type { PreviewZoom } from '$lib/preview-zoom';
 
 	let {
 		showCode,
@@ -18,6 +19,7 @@
 
 	let copied = $state(false);
 	let pageIndex = $state(0);
+	let zoom = $state<PreviewZoom>('page');
 	let copiedTimer: ReturnType<typeof setTimeout> | undefined;
 
 	async function copyToClipboard() {
@@ -52,7 +54,7 @@
 					<span>Compiling preview...</span>
 				</div>
 			{:else if preview}
-				<PaginatedPreview {preview} {documentLabel} bind:pageIndex />
+				<PaginatedPreview {preview} {documentLabel} bind:pageIndex bind:zoom />
 			{:else}
 				<div class="flex items-center justify-center h-full text-gray-400">
 					<span>Preview will appear here</span>

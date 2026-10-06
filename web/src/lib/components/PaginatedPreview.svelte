@@ -7,6 +7,7 @@
 		MIN_PREVIEW_ZOOM,
 		previewWidth,
 		stepPreviewZoom,
+		type PreviewZoom,
 	} from '$lib/preview-zoom';
 
 	// The page is bindable because the preview remounts on every recompile; the parent keeps the reader's place.
@@ -14,18 +15,21 @@
 		preview,
 		documentLabel,
 		pageIndex = $bindable(0),
-	}: { preview: CompiledPreview; documentLabel: string; pageIndex?: number } = $props();
+		zoom = $bindable<PreviewZoom>('page'),
+	}: { preview: CompiledPreview; documentLabel: string; pageIndex?: number; zoom?: PreviewZoom } = $props();
 	let pageSvgs = $state<string[]>([]);
-	let zoom = $state<number | null>(null);
 	let availableWidth = $state(BASE_PREVIEW_WIDTH);
+	let availableHeight = $state(Infinity);
 	let scroller = $state<HTMLElement>();
-	let pageWidth = $derived(previewWidth(availableWidth, zoom));
+	let currentPage = $derived(preview.pages[pageIndex] ?? preview.pages[0]);
+	let pageWidth = $derived(previewWidth(availableWidth, zoom, availableHeight, currentPage.width / currentPage.height));
 	let effectiveZoom = $derived((pageWidth / BASE_PREVIEW_WIDTH) * 100);
 
 	$effect(() => {
 		if (!scroller) return;
 		const observer = new ResizeObserver(([entry]) => {
 			availableWidth = entry.contentRect.width;
+			availableHeight = entry.contentRect.height;
 		});
 		observer.observe(scroller);
 		return () => observer.disconnect();
@@ -91,8 +95,12 @@
 			disabled={effectiveZoom <= MIN_PREVIEW_ZOOM}
 			onclick={() => (zoom = stepPreviewZoom(effectiveZoom, -1))}>−</button
 		>
-		<span class="min-w-12 text-center text-sm font-medium text-white" aria-live={zoom === null ? 'off' : 'polite'}
-			>{zoom === null ? `Fit · ${Math.round(effectiveZoom)}%` : `${zoom}%`}</span
+		<span
+			class="min-w-12 text-center text-sm font-medium text-white"
+			aria-live={typeof zoom === 'number' ? 'polite' : 'off'}
+			>{typeof zoom === 'number'
+				? `${zoom}%`
+				: `${zoom === 'page' ? 'Page' : 'Width'} · ${Math.round(effectiveZoom)}%`}</span
 		>
 		<button
 			class="secondary px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
@@ -104,26 +112,32 @@
 			class="secondary px-3 py-1 text-sm"
 			aria-label="Fit preview to width"
 			aria-pressed={zoom === null}
-			onclick={() => (zoom = null)}>Fit to width</button
+			onclick={() => (zoom = null)}>Fit width</button
 		>
+		<button
+			class="secondary px-2 py-1 text-sm"
+			aria-label="Fit whole preview page"
+			aria-pressed={zoom === 'page'}
+			onclick={() => (zoom = 'page')}>Fit page</button
+		>
+		{#if pageSvgs.length > 1 && pageSvgs.length === preview.pages.length}
+			<nav class="flex items-center gap-2" aria-label="Preview pages">
+				<button
+					class="secondary px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+					onclick={() => (pageIndex -= 1)}
+					disabled={pageIndex === 0}
+					aria-label="Previous preview page">←</button
+				>
+				<span class="text-sm font-medium text-white" aria-live="polite">{pageIndex + 1} / {pageSvgs.length}</span>
+				<button
+					class="secondary px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+					onclick={() => (pageIndex += 1)}
+					disabled={pageIndex === pageSvgs.length - 1}
+					aria-label="Next preview page">→</button
+				>
+			</nav>
+		{/if}
 	</div>
-	{#if pageSvgs.length > 1 && pageSvgs.length === preview.pages.length}
-		<nav class="flex w-full items-center justify-between gap-3" aria-label="Preview pages">
-			<button
-				class="secondary px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
-				onclick={() => (pageIndex -= 1)}
-				disabled={pageIndex === 0}
-				aria-label="Previous preview page">← Previous</button
-			>
-			<span class="text-sm font-medium text-white" aria-live="polite">Page {pageIndex + 1} of {pageSvgs.length}</span>
-			<button
-				class="secondary px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
-				onclick={() => (pageIndex += 1)}
-				disabled={pageIndex === pageSvgs.length - 1}
-				aria-label="Next preview page">Next →</button
-			>
-		</nav>
-	{/if}
 	<div
 		bind:this={scroller}
 		class="min-h-0 w-full flex-1 overflow-auto"

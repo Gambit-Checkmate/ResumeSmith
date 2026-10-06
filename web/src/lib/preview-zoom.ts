@@ -3,8 +3,16 @@ export const MAX_PREVIEW_ZOOM = 200;
 export const PREVIEW_ZOOM_STEP = 25;
 export const BASE_PREVIEW_WIDTH = 510;
 
-/** A null zoom fits the page to the available width. */
-export function previewWidth(availableWidth: number, zoom: number | null): number {
+export type PreviewZoom = number | null | 'page';
+
+/** Null fits the width; page fits both dimensions without enlarging the initial preview. */
+export function previewWidth(
+	availableWidth: number,
+	zoom: PreviewZoom,
+	availableHeight = Infinity,
+	aspectRatio = 1,
+): number {
+	if (zoom === 'page') return Math.max(1, Math.min(availableWidth, availableHeight * aspectRatio, BASE_PREVIEW_WIDTH));
 	return zoom === null ? Math.max(1, availableWidth) : (BASE_PREVIEW_WIDTH * zoom) / 100;
 }
 
